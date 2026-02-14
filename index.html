@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifeOS - 混合云同步版</title>
+    <title>LifeOS - 混合云同步版 (Pro)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -189,14 +189,14 @@
             "专注当下，未来自会呈现。"
         ];
 
-        // 修改：初始板块只有一个 "今日日程"
+        // 初始板块 - 今日日程
         const INITIAL_SECTIONS = [
             { id: 'main', title: '今日日程', icon: 'ListTodo', color: 'blue' }
         ];
         
         const TODAY_STR = generateDateString(new Date());
         
-        // 修改：初始数据归并到 'main'
+        // 初始数据
         const INITIAL_TASKS_BY_DATE = {
             [TODAY_STR]: {
                 main: [
@@ -274,7 +274,6 @@
         const CircularProgress = ({ percentage, label, subLabel, colorClass, trackClass, onClick }) => {const radius = 18; const circumference = 2 * Math.PI * radius; const strokeDashoffset = circumference - (percentage / 100) * circumference; return (<div className="flex flex-col items-center justify-center group cursor-pointer relative z-10" onClick={onClick} style={{ pointerEvents: 'auto' }}><div className="relative w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105"><svg className="w-full h-full transform -rotate-90"><circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" className={trackClass} /><circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" className={colorClass} /></svg><span className="absolute text-[10px] font-bold text-gray-600">{percentage}%</span></div><div className="mt-1 text-center"><div className="text-[10px] text-gray-400 group-hover:text-blue-500 transition-colors">{label}</div><div className="text-xs font-bold text-gray-800">{subLabel}</div></div></div>);};
         const AdvancedPieChart = ({ data, totalMins }) => {if (!data || data.length === 0) return null; let cumulativePercent = 0; const getCoordinates = (percent, radius = 1) => { const rad = 2 * Math.PI * (percent - 0.25); const x = Math.cos(rad) * radius; const y = Math.sin(rad) * radius; return [x, y]; }; const formatDuration = (mins) => { const h = Math.floor(mins / 60); const m = mins % 60; if (h > 0 && m > 0) return `${h}小时${m}分`; if (h > 0) return `${h}小时`; return `${m}分`; }; return (<div className="relative w-full aspect-square max-w-sm mx-auto my-4"><svg viewBox="-2 -2 4 4" className="w-full h-full overflow-visible">{data.map((item, index) => { const percent = item.value / totalMins; const [startX, startY] = getCoordinates(cumulativePercent); const midPercent = cumulativePercent + percent / 2; cumulativePercent += percent; const [endX, endY] = getCoordinates(cumulativePercent); const largeArcFlag = percent > 0.5 ? 1 : 0; const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`; const [midX, midY] = getCoordinates(midPercent); const isRight = midX > 0; const elbowX = midX * 1.15; const elbowY = midY * 1.15; const textStartX = isRight ? elbowX + 0.2 : elbowX - 0.2; return (<g key={index}><path d={pathData} fill={item.color} stroke="white" strokeWidth="0.02" className="hover:opacity-90 transition-opacity cursor-pointer" />{percent > 0.03 && (<React.Fragment><polyline points={`${midX},${midY} ${elbowX},${elbowY} ${textStartX},${elbowY}`} fill="none" stroke="#9ca3af" strokeWidth="0.015" /><text x={isRight ? textStartX + 0.05 : textStartX - 0.05} y={elbowY - 0.06} fill="#4b5563" fontSize="0.16" textAnchor={isRight ? 'start' : 'end'} alignmentBaseline="baseline" className="font-bold">{item.tag}</text><text x={isRight ? textStartX + 0.05 : textStartX - 0.05} y={elbowY + 0.14} fill="#6b7280" fontSize="0.12" textAnchor={isRight ? 'start' : 'end'} alignmentBaseline="baseline">{formatDuration(item.value)}</text></React.Fragment>)}</g>);})}</svg></div>);};
         
-        // 优化后的统计卡片：紧凑型，适合一行排列
         const StatCard = ({ number, title, subText, colorTheme }) => {
             const themes = {
                 red: { bg: 'bg-red-50', text: 'text-red-600', sub: 'bg-red-100 text-red-700', border: 'border-red-100' },
@@ -293,7 +292,6 @@
             );
         };
 
-        // 修改：任务卡片布局重构 - 备注和提醒按钮移动到标签行，整体更紧凑
         const TaskCard = ({ task, onToggle, onEdit, onDelete, onNote, onRemind, cardStyle, sectionColor }) => {
             const getMatrixTag = () => {
                 if (task.important && task.urgent) return { text: '重要紧急', color: 'indigo' };
@@ -309,7 +307,6 @@
             
             return (
                 <div className={`p-3 rounded-xl shadow-sm border transition-all duration-300 group mb-2 relative cursor-pointer flex items-start gap-3 ${bgClass}`} onClick={() => onToggle(task.id)}>
-                    {/* 时间列 - 放在最前面 */}
                     <div className="flex flex-col items-end justify-center min-w-[4rem] border-r-2 border-gray-100 pr-3 py-1 self-stretch">
                         {task.time ? (
                             <>
@@ -339,7 +336,6 @@
                             {userTag && <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${task.completed ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>{String(userTag)}</span>}
                             <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${task.completed ? 'bg-gray-100 text-gray-400' : tagColors[matrixTag.color]}`}>{matrixTag.text}</span>
                             
-                            {/* 移动到这里的操作按钮，只在未完成时显示，更紧凑 */}
                             <div className={`flex items-center gap-2 ${task.completed ? 'hidden' : 'flex'}`}>
                                 <button className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded hover:bg-pink-50 hover:text-pink-600 text-gray-400 transition-all" onClick={(e) => { e.stopPropagation(); onNote(task); }}>
                                     <PenLine className="w-3 h-3" /><span>备注</span>
@@ -373,7 +369,6 @@
             const insightRef = useRef(null);
             const adjustmentRef = useRef(null);
 
-            // 自动调整高度 (通用函数)
             const adjustHeight = (ref) => {
                 if (ref.current) {
                     ref.current.style.height = 'auto';
@@ -381,10 +376,7 @@
                 }
             };
 
-            // 监听感恩笔记变化
             useEffect(() => { adjustHeight(gratitudeRef); }, [data.gratitude]);
-            
-            // 监听3行复盘变化
             useEffect(() => { 
                 adjustHeight(factsRef);
                 adjustHeight(insightRef);
@@ -434,36 +426,15 @@
                         <div className="space-y-3">
                             <div>
                                 <label className="text-xs font-bold text-blue-500 mb-1 block flex items-center gap-1"><LayoutGrid className="w-3 h-3"/> 事实</label>
-                                <textarea 
-                                    ref={factsRef}
-                                    rows={1}
-                                    className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-blue-200 transition-all resize-none overflow-hidden" 
-                                    placeholder="完成..." 
-                                    value={String(data.facts || '')} 
-                                    onChange={(e) => updateReview('facts', e.target.value)} 
-                                />
+                                <textarea ref={factsRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-blue-200 transition-all resize-none overflow-hidden" placeholder="完成..." value={String(data.facts || '')} onChange={(e) => updateReview('facts', e.target.value)} />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-pink-500 mb-1 block flex items-center gap-1"><Zap className="w-3 h-3"/> 洞察</label>
-                                <textarea 
-                                    ref={insightRef}
-                                    rows={1}
-                                    className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-pink-200 transition-all resize-none overflow-hidden" 
-                                    placeholder="心得..." 
-                                    value={String(data.insight || '')} 
-                                    onChange={(e) => updateReview('insight', e.target.value)} 
-                                />
+                                <textarea ref={insightRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-pink-200 transition-all resize-none overflow-hidden" placeholder="心得..." value={String(data.insight || '')} onChange={(e) => updateReview('insight', e.target.value)} />
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-green-500 mb-1 block flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> 调整</label>
-                                <textarea 
-                                    ref={adjustmentRef}
-                                    rows={1}
-                                    className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-green-200 transition-all resize-none overflow-hidden" 
-                                    placeholder="下一步..." 
-                                    value={String(data.adjustment || '')} 
-                                    onChange={(e) => updateReview('adjustment', e.target.value)} 
-                                />
+                                <textarea ref={adjustmentRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-green-200 transition-all resize-none overflow-hidden" placeholder="下一步..." value={String(data.adjustment || '')} onChange={(e) => updateReview('adjustment', e.target.value)} />
                             </div>
                         </div>
                     </div>
@@ -476,33 +447,24 @@
             const data = reviews[reviewId] || {};
             const goals = Array.isArray(data.goals) ? data.goals : [];
             
-            // 保存状态
             const [summarySaved, setSummarySaved] = useState(false);
             const [kptSaved, setKptSaved] = useState({ keep: false, problem: false, try: false });
             const [graiSaved, setGraiSaved] = useState({ goal: false, result: false, analysis: false, insight: false });
             const [pdcaSaved, setPdcaSaved] = useState({ plan: false, do: false, check: false, action: false });
 
-            // Refs for auto-resize
             const summaryRef = useRef(null);
-            
-            // KPT Refs
             const keepRef = useRef(null);
             const problemRef = useRef(null);
             const tryRef = useRef(null);
-
-            // GRAI Refs
             const goalRef = useRef(null);
             const resultRef = useRef(null);
             const analysisRef = useRef(null);
             const insightRef = useRef(null);
-
-            // PDCA Refs
             const planRef = useRef(null);
             const doRef = useRef(null);
             const checkRef = useRef(null);
             const actionRef = useRef(null);
 
-            // 自动调整高度通用函数
             const adjustHeight = (ref) => {
                 if (ref.current) {
                     ref.current.style.height = 'auto';
@@ -510,434 +472,89 @@
                 }
             };
 
-            // 监听变化自动调整高度
             useEffect(() => { adjustHeight(summaryRef); }, [data.summary]);
+            useEffect(() => { if(period === 'yearly') { adjustHeight(keepRef); adjustHeight(problemRef); adjustHeight(tryRef); } }, [data.kpt_keep, data.kpt_problem, data.kpt_try, period]);
+            useEffect(() => { if(period === 'monthly') { adjustHeight(goalRef); adjustHeight(resultRef); adjustHeight(analysisRef); adjustHeight(insightRef); } }, [data.grai_goal, data.grai_result, data.grai_analysis, data.grai_insight, period]);
+            useEffect(() => { if(period === 'weekly') { adjustHeight(planRef); adjustHeight(doRef); adjustHeight(checkRef); adjustHeight(actionRef); } }, [data.pdca_plan, data.pdca_do, data.pdca_check, data.pdca_action, period]);
             
-            // KPT Auto-resize
-            useEffect(() => { 
-                if(period === 'yearly') {
-                    adjustHeight(keepRef);
-                    adjustHeight(problemRef);
-                    adjustHeight(tryRef);
-                }
-            }, [data.kpt_keep, data.kpt_problem, data.kpt_try, period]);
-
-            // GRAI Auto-resize
-            useEffect(() => {
-                if(period === 'monthly') {
-                    adjustHeight(goalRef);
-                    adjustHeight(resultRef);
-                    adjustHeight(analysisRef);
-                    adjustHeight(insightRef);
-                }
-            }, [data.grai_goal, data.grai_result, data.grai_analysis, data.grai_insight, period]);
-
-            // PDCA Auto-resize
-            useEffect(() => {
-                if(period === 'weekly') {
-                    adjustHeight(planRef);
-                    adjustHeight(doRef);
-                    adjustHeight(checkRef);
-                    adjustHeight(actionRef);
-                }
-            }, [data.pdca_plan, data.pdca_do, data.pdca_check, data.pdca_action, period]);
-            
-            // 自动计算该周期的所有数据统计
             const statsData = useMemo(() => {
                 let targetDates = [];
                 const y = reviewDate.getFullYear();
                 const m = reviewDate.getMonth();
-
-                if (period === 'weekly') {
-                    const { start } = getWeekRange(reviewDate);
-                    for(let i=0; i<7; i++) {
-                        const temp = new Date(start);
-                        temp.setDate(start.getDate() + i);
-                        targetDates.push(generateDateString(temp));
-                    }
-                } else if (period === 'monthly') {
-                    Object.keys(tasksByDate).forEach(dateStr => {
-                        const [dy, dm] = dateStr.split('-').map(Number);
-                        if (dy === y && dm === m + 1) targetDates.push(dateStr);
-                    });
-                } else if (period === 'yearly') {
-                    Object.keys(tasksByDate).forEach(dateStr => {
-                        const [dy] = dateStr.split('-').map(Number);
-                        if (dy === y) targetDates.push(dateStr);
-                    });
-                }
-
-                let tagMap = {};
-                let totalMins = 0;
-                let activeDays = new Set();
-                let completedCount = 0;
-
-                targetDates.forEach(dateStr => {
-                    const dayTasks = tasksByDate[dateStr];
-                    if (!dayTasks) return;
-                    
-                    let hasCompleted = false;
-                    [...sections.map(s => s.id), 'fragmentary'].forEach(sec => {
-                        (dayTasks[sec] || []).forEach(task => {
-                            if (task.completed) {
-                                hasCompleted = true;
-                                completedCount++;
-                                const tag = task.tag || '未分类';
-                                const mins = task.time ? parseDurationFromTimeStr(task.time) : 30; // 默认30分钟
-                                tagMap[tag] = (tagMap[tag] || 0) + mins;
-                                totalMins += mins;
-                            }
-                        });
-                    });
-                    if (hasCompleted) activeDays.add(dateStr);
-                });
-
+                if (period === 'weekly') { const { start } = getWeekRange(reviewDate); for(let i=0; i<7; i++) { const temp = new Date(start); temp.setDate(start.getDate() + i); targetDates.push(generateDateString(temp)); } }
+                else if (period === 'monthly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy, dm] = dateStr.split('-').map(Number); if (dy === y && dm === m + 1) targetDates.push(dateStr); }); }
+                else if (period === 'yearly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy] = dateStr.split('-').map(Number); if (dy === y) targetDates.push(dateStr); }); }
+                let tagMap = {}; let totalMins = 0; let activeDays = new Set(); let completedCount = 0;
+                targetDates.forEach(dateStr => { const dayTasks = tasksByDate[dateStr]; if (!dayTasks) return; let hasCompleted = false; [...sections.map(s => s.id), 'fragmentary'].forEach(sec => { (dayTasks[sec] || []).forEach(task => { if (task.completed) { hasCompleted = true; completedCount++; const tag = task.tag || '未分类'; const mins = task.time ? parseDurationFromTimeStr(task.time) : 30; tagMap[tag] = (tagMap[tag] || 0) + mins; totalMins += mins; } }); }); if (hasCompleted) activeDays.add(dateStr); });
                 const colors = ['#fca5a5', '#93c5fd', '#6ee7b7', '#fcd34d', '#c4b5fd', '#f9a8d4', '#818cf8', '#34d399', '#fbbf24', '#f87171'];
-                const chartData = Object.keys(tagMap).map((k, i) => ({
-                    tag: k,
-                    value: tagMap[k],
-                    color: colors[i % colors.length]
-                })).sort((a,b) => b.value - a.value);
-
+                const chartData = Object.keys(tagMap).map((k, i) => ({ tag: k, value: tagMap[k], color: colors[i % colors.length] })).sort((a,b) => b.value - a.value);
                 return { data: chartData, totalMins, completedCount, activeDays: activeDays.size };
             }, [period, reviewDate, tasksByDate, sections]);
 
             const [newGoal, setNewGoal] = useState('');
-            
             const updateReview = (field, value) => {
                 setReviews(prev => ({ ...prev, [reviewId]: { ...(prev[reviewId] || {}), [field]: value } }));
                 if (field === 'summary') setSummarySaved(false);
-                if (field.startsWith('kpt_')) {
-                    const type = field.split('_')[1];
-                    setKptSaved(prev => ({ ...prev, [type]: false }));
-                }
-                if (field.startsWith('grai_')) {
-                    const type = field.split('_')[1];
-                    setGraiSaved(prev => ({ ...prev, [type]: false }));
-                }
-                if (field.startsWith('pdca_')) {
-                    const type = field.split('_')[1];
-                    setPdcaSaved(prev => ({ ...prev, [type]: false }));
-                }
+                if (field.startsWith('kpt_')) setKptSaved(prev => ({ ...prev, [field.split('_')[1]]: false }));
+                if (field.startsWith('grai_')) setGraiSaved(prev => ({ ...prev, [field.split('_')[1]]: false }));
+                if (field.startsWith('pdca_')) setPdcaSaved(prev => ({ ...prev, [field.split('_')[1]]: false }));
             };
             
             const addGoal = () => { if (!newGoal.trim()) return; const newGoalObj = { id: Date.now(), text: newGoal, completed: false }; updateReview('goals', [...goals, newGoalObj]); setNewGoal(''); };
             const toggleGoal = (goalId) => { const newGoals = goals.map(g => g.id === goalId ? { ...g, completed: !g.completed } : g); updateReview('goals', newGoals); };
             
-            const handleSaveSummary = () => {
-                setSummarySaved(true);
-                setTimeout(() => setSummarySaved(false), 2000);
-            };
-
-            const handleSaveKpt = (type) => {
-                setKptSaved(prev => ({ ...prev, [type]: true }));
-                setTimeout(() => setKptSaved(prev => ({ ...prev, [type]: false })), 2000);
-            };
-
-            const handleSaveGrai = (type) => {
-                setGraiSaved(prev => ({ ...prev, [type]: true }));
-                setTimeout(() => setGraiSaved(prev => ({ ...prev, [type]: false })), 2000);
-            };
-
-            const handleSavePdca = (type) => {
-                setPdcaSaved(prev => ({ ...prev, [type]: true }));
-                setTimeout(() => setPdcaSaved(prev => ({ ...prev, [type]: false })), 2000);
-            };
+            const handleSaveSummary = () => { setSummarySaved(true); setTimeout(() => setSummarySaved(false), 2000); };
+            const handleSaveKpt = (type) => { setKptSaved(prev => ({ ...prev, [type]: true })); setTimeout(() => setKptSaved(prev => ({ ...prev, [type]: false })), 2000); };
+            const handleSaveGrai = (type) => { setGraiSaved(prev => ({ ...prev, [type]: true })); setTimeout(() => setGraiSaved(prev => ({ ...prev, [type]: false })), 2000); };
+            const handleSavePdca = (type) => { setPdcaSaved(prev => ({ ...prev, [type]: true })); setTimeout(() => setPdcaSaved(prev => ({ ...prev, [type]: false })), 2000); };
 
             return (
                 <div className="space-y-4 p-4">
-                    {/* 数据回顾统计区 */}
                     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                         <div className="flex items-center gap-2 mb-2"><PieChart className="w-5 h-5 text-indigo-500" /><h4 className="font-bold text-gray-800 text-sm">时间分配与数据回顾</h4></div>
-                        {statsData.data.length > 0 ? (
-                            <div className="flex flex-col items-center">
-                                <AdvancedPieChart data={statsData.data} totalMins={statsData.totalMins} />
-                                <div className="mt-4 text-center w-full pt-4 border-t border-gray-100">
-                                    <p className="text-gray-800 font-bold text-sm mb-1">总计 {Math.floor(statsData.totalMins / 60)} 小时 {statsData.totalMins % 60} 分钟</p>
-                                    <p className="text-gray-400 text-xs mt-1">打卡完成 {statsData.completedCount} 个任务 · 周期内活跃 {statsData.activeDays} 天</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-6 text-gray-400 text-xs">该周期暂无已完成的任务数据</div>
-                        )}
+                        {statsData.data.length > 0 ? (<div className="flex flex-col items-center"><AdvancedPieChart data={statsData.data} totalMins={statsData.totalMins} /><div className="mt-4 text-center w-full pt-4 border-t border-gray-100"><p className="text-gray-800 font-bold text-sm mb-1">总计 {Math.floor(statsData.totalMins / 60)} 小时 {statsData.totalMins % 60} 分钟</p><p className="text-gray-400 text-xs mt-1">打卡完成 {statsData.completedCount} 个任务 · 周期内活跃 {statsData.activeDays} 天</p></div></div>) : (<div className="text-center py-6 text-gray-400 text-xs">该周期暂无已完成的任务数据</div>)}
                     </div>
 
-                    {/* 目标区 */}
                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                         <div className="flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-red-500" /><h4 className="font-bold text-gray-800 text-sm">核心目标</h4></div>
-                        <div className="space-y-2 mb-3">
-                            {goals.map(goal => (
-                                <div key={goal.id} className="flex items-center gap-2 group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                    <button onClick={() => toggleGoal(goal.id)} className={`flex-shrink-0 transition-colors ${goal.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}>{goal.completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}</button>
-                                    <span className={`flex-1 text-sm ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{String(goal.text)}</span>
-                                </div>
-                            ))}
-                        </div>
+                        <div className="space-y-2 mb-3">{goals.map(goal => (<div key={goal.id} className="flex items-center gap-2 group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"><button onClick={() => toggleGoal(goal.id)} className={`flex-shrink-0 transition-colors ${goal.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}>{goal.completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}</button><span className={`flex-1 text-sm ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{String(goal.text)}</span></div>))}</div>
                         <div className="flex gap-2 w-full mt-2"><input className="flex-1 bg-white border border-gray-200 rounded px-3 py-1.5 text-sm outline-none" placeholder="添加新目标..." value={newGoal} onChange={(e) => setNewGoal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addGoal()} /><button onClick={addGoal} className="bg-[#1E293B] text-white px-4 py-1.5 rounded text-xs font-bold">添加</button></div>
                     </div>
 
-                    {/* 动态渲染复盘内容：年度 KPT，月度 GRAI，周度 PDCA */}
                     {period === 'yearly' ? (
                         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
-                                <TrendingUp className="w-5 h-5 text-purple-600" />
-                                <h4 className="font-black text-gray-800 text-lg">KPT 年复盘法</h4>
-                            </div>
-                            
+                            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2"><TrendingUp className="w-5 h-5 text-purple-600" /><h4 className="font-black text-gray-800 text-lg">KPT 年复盘法</h4></div>
                             <div className="space-y-5">
-                                {/* Keep */}
-                                <div className="bg-green-50/50 p-4 rounded-xl border border-green-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-green-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Keep 保持</label>
-                                        <button onClick={() => handleSaveKpt('keep')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${kptSaved.keep ? 'bg-green-200 text-green-700' : 'bg-white text-green-600 border border-green-200 hover:bg-green-50'}`}>
-                                            {kptSaved.keep ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-green-600/70 mb-2">哪些行为是可以保持的？有哪些亮点？</p>
-                                    <textarea 
-                                        ref={keepRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        placeholder="记录值得延续的成功经验..."
-                                        value={String(data.kpt_keep || '')}
-                                        onChange={(e) => updateReview('kpt_keep', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Problem */}
-                                <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-orange-700 font-bold flex items-center gap-2"><AlertCircle className="w-4 h-4"/> Problem 问题</label>
-                                        <button onClick={() => handleSaveKpt('problem')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${kptSaved.problem ? 'bg-orange-200 text-orange-700' : 'bg-white text-orange-600 border border-orange-200 hover:bg-orange-50'}`}>
-                                            {kptSaved.problem ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-orange-600/70 mb-2">曾遇到了哪些问题？有哪些不足？</p>
-                                    <textarea 
-                                        ref={problemRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        placeholder="诚实地记录遇到的困难和挑战..."
-                                        value={String(data.kpt_problem || '')}
-                                        onChange={(e) => updateReview('kpt_problem', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Try */}
-                                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-blue-700 font-bold flex items-center gap-2"><Sparkles className="w-4 h-4"/> Try 尝试</label>
-                                        <button onClick={() => handleSaveKpt('try')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${kptSaved.try ? 'bg-blue-200 text-blue-700' : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50'}`}>
-                                            {kptSaved.try ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-blue-600/70 mb-2">可以尝试去做什么？有什么新的解决方案？</p>
-                                    <textarea 
-                                        ref={tryRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        placeholder="写下明年的行动计划和改进方案..."
-                                        value={String(data.kpt_try || '')}
-                                        onChange={(e) => updateReview('kpt_try', e.target.value)}
-                                    />
-                                </div>
+                                <div className="bg-green-50/50 p-4 rounded-xl border border-green-100"><div className="flex items-center justify-between mb-2"><label className="text-green-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Keep 保持</label><button onClick={() => handleSaveKpt('keep')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${kptSaved.keep ? 'bg-green-200 text-green-700' : 'bg-white text-green-600 border border-green-200 hover:bg-green-50'}`}>{kptSaved.keep ? '已保存' : '保存'}</button></div><p className="text-xs text-green-600/70 mb-2">哪些行为是可以保持的？有哪些亮点？</p><textarea ref={keepRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-200 resize-none overflow-hidden transition-all text-gray-700" placeholder="记录值得延续的成功经验..." value={String(data.kpt_keep || '')} onChange={(e) => updateReview('kpt_keep', e.target.value)} /></div>
+                                <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100"><div className="flex items-center justify-between mb-2"><label className="text-orange-700 font-bold flex items-center gap-2"><AlertCircle className="w-4 h-4"/> Problem 问题</label><button onClick={() => handleSaveKpt('problem')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${kptSaved.problem ? 'bg-orange-200 text-orange-700' : 'bg-white text-orange-600 border border-orange-200 hover:bg-orange-50'}`}>{kptSaved.problem ? '已保存' : '保存'}</button></div><p className="text-xs text-orange-600/70 mb-2">曾遇到了哪些问题？有哪些不足？</p><textarea ref={problemRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none overflow-hidden transition-all text-gray-700" placeholder="诚实地记录遇到的困难和挑战..." value={String(data.kpt_problem || '')} onChange={(e) => updateReview('kpt_problem', e.target.value)} /></div>
+                                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100"><div className="flex items-center justify-between mb-2"><label className="text-blue-700 font-bold flex items-center gap-2"><Sparkles className="w-4 h-4"/> Try 尝试</label><button onClick={() => handleSaveKpt('try')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${kptSaved.try ? 'bg-blue-200 text-blue-700' : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50'}`}>{kptSaved.try ? '已保存' : '保存'}</button></div><p className="text-xs text-blue-600/70 mb-2">可以尝试去做什么？有什么新的解决方案？</p><textarea ref={tryRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none overflow-hidden transition-all text-gray-700" placeholder="写下明年的行动计划和改进方案..." value={String(data.kpt_try || '')} onChange={(e) => updateReview('kpt_try', e.target.value)} /></div>
                             </div>
-
-                            {/* 复盘方向提示 */}
-                            <div className="mt-6 pt-4 border-t border-gray-100">
-                                <span className="text-xs font-bold text-gray-400 block mb-2">💡 复盘思考维度参考：</span>
-                                <div className="flex flex-wrap gap-2">
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🌱 内在：个人成长</span>
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">💼 内在：职业发展</span>
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">💰 内在：财务状况</span>
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🌟 内在：自我实现</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🤝 外在：朋友/人脉</span>
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🎮 外在：娱乐休闲</span>
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🏠 外在：家庭</span>
-                                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">💪 外在：健康</span>
-                                </div>
-                            </div>
+                            <div className="mt-6 pt-4 border-t border-gray-100"><span className="text-xs font-bold text-gray-400 block mb-2">💡 复盘思考维度参考：</span><div className="flex flex-wrap gap-2"><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🌱 内在：个人成长</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">💼 内在：职业发展</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">💰 内在：财务状况</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🌟 内在：自我实现</span></div><div className="flex flex-wrap gap-2 mt-2"><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🤝 外在：朋友/人脉</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🎮 外在：娱乐休闲</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">🏠 外在：家庭</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded">💪 外在：健康</span></div></div>
                         </div>
                     ) : period === 'monthly' ? (
                         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
-                                <TrendingUp className="w-5 h-5 text-indigo-600" />
-                                <h4 className="font-black text-gray-800 text-lg">GRAI 月复盘法</h4>
-                            </div>
-                            
+                            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2"><TrendingUp className="w-5 h-5 text-indigo-600" /><h4 className="font-black text-gray-800 text-lg">GRAI 月复盘法</h4></div>
                             <div className="space-y-5">
-                                {/* Goal */}
-                                <div className="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-teal-700 font-bold flex items-center gap-2"><Target className="w-4 h-4"/> Goal 回顾目标</label>
-                                        <button onClick={() => handleSaveGrai('goal')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.goal ? 'bg-teal-200 text-teal-700' : 'bg-white text-teal-600 border border-teal-200 hover:bg-teal-50'}`}>
-                                            {graiSaved.goal ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-teal-600/70 mb-2">当初的目标是什么？核心阶段性目标是什么？</p>
-                                    <textarea 
-                                        ref={goalRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.grai_goal || '')}
-                                        onChange={(e) => updateReview('grai_goal', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Result */}
-                                <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-indigo-700 font-bold flex items-center gap-2"><PieChart className="w-4 h-4"/> Result 评估结果</label>
-                                        <button onClick={() => handleSaveGrai('result')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.result ? 'bg-indigo-200 text-indigo-700' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>
-                                            {graiSaved.result ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-indigo-600/70 mb-2">目标是否完成？差距多少？相比原定目标有哪些优劣势？</p>
-                                    <textarea 
-                                        ref={resultRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.grai_result || '')}
-                                        onChange={(e) => updateReview('grai_result', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Analysis */}
-                                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-amber-700 font-bold flex items-center gap-2"><LayoutGrid className="w-4 h-4"/> Analysis 分析原因</label>
-                                        <button onClick={() => handleSaveGrai('analysis')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.analysis ? 'bg-amber-200 text-amber-700' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}`}>
-                                            {graiSaved.analysis ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-amber-600/70 mb-2">经历了什么？产生该结果的原因（主观/客观）有哪些？</p>
-                                    <textarea 
-                                        ref={analysisRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.grai_analysis || '')}
-                                        onChange={(e) => updateReview('grai_analysis', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Insight */}
-                                <div className="bg-violet-50/50 p-4 rounded-xl border border-violet-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-violet-700 font-bold flex items-center gap-2"><Zap className="w-4 h-4"/> Insight 归类总结</label>
-                                        <button onClick={() => handleSaveGrai('insight')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.insight ? 'bg-violet-200 text-violet-700' : 'bg-white text-violet-600 border border-violet-200 hover:bg-violet-50'}`}>
-                                            {graiSaved.insight ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-violet-600/70 mb-2">得出的对应措施是什么？得到了什么经验？规律是什么？</p>
-                                    <textarea 
-                                        ref={insightRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.grai_insight || '')}
-                                        onChange={(e) => updateReview('grai_insight', e.target.value)}
-                                    />
-                                </div>
+                                <div className="bg-teal-50/50 p-4 rounded-xl border border-teal-100"><div className="flex items-center justify-between mb-2"><label className="text-teal-700 font-bold flex items-center gap-2"><Target className="w-4 h-4"/> Goal 回顾目标</label><button onClick={() => handleSaveGrai('goal')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.goal ? 'bg-teal-200 text-teal-700' : 'bg-white text-teal-600 border border-teal-200 hover:bg-teal-50'}`}>{graiSaved.goal ? '已保存' : '保存'}</button></div><p className="text-xs text-teal-600/70 mb-2">当初的目标是什么？核心阶段性目标是什么？</p><textarea ref={goalRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.grai_goal || '')} onChange={(e) => updateReview('grai_goal', e.target.value)} /></div>
+                                <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100"><div className="flex items-center justify-between mb-2"><label className="text-indigo-700 font-bold flex items-center gap-2"><PieChart className="w-4 h-4"/> Result 评估结果</label><button onClick={() => handleSaveGrai('result')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.result ? 'bg-indigo-200 text-indigo-700' : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'}`}>{graiSaved.result ? '已保存' : '保存'}</button></div><p className="text-xs text-indigo-600/70 mb-2">目标是否完成？差距多少？相比原定目标有哪些优劣势？</p><textarea ref={resultRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.grai_result || '')} onChange={(e) => updateReview('grai_result', e.target.value)} /></div>
+                                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100"><div className="flex items-center justify-between mb-2"><label className="text-amber-700 font-bold flex items-center gap-2"><LayoutGrid className="w-4 h-4"/> Analysis 分析原因</label><button onClick={() => handleSaveGrai('analysis')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.analysis ? 'bg-amber-200 text-amber-700' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}`}>{graiSaved.analysis ? '已保存' : '保存'}</button></div><p className="text-xs text-amber-600/70 mb-2">经历了什么？产生该结果的原因（主观/客观）有哪些？</p><textarea ref={analysisRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.grai_analysis || '')} onChange={(e) => updateReview('grai_analysis', e.target.value)} /></div>
+                                <div className="bg-violet-50/50 p-4 rounded-xl border border-violet-100"><div className="flex items-center justify-between mb-2"><label className="text-violet-700 font-bold flex items-center gap-2"><Zap className="w-4 h-4"/> Insight 归类总结</label><button onClick={() => handleSaveGrai('insight')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${graiSaved.insight ? 'bg-violet-200 text-violet-700' : 'bg-white text-violet-600 border border-violet-200 hover:bg-violet-50'}`}>{graiSaved.insight ? '已保存' : '保存'}</button></div><p className="text-xs text-violet-600/70 mb-2">得出的对应措施是什么？得到了什么经验？规律是什么？</p><textarea ref={insightRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.grai_insight || '')} onChange={(e) => updateReview('grai_insight', e.target.value)} /></div>
                             </div>
                         </div>
                     ) : period === 'weekly' ? (
                         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
-                                <TrendingUp className="w-5 h-5 text-emerald-600" />
-                                <h4 className="font-black text-gray-800 text-lg">PDCA 周复盘法</h4>
-                            </div>
-                            
+                            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2"><TrendingUp className="w-5 h-5 text-emerald-600" /><h4 className="font-black text-gray-800 text-lg">PDCA 周复盘法</h4></div>
                             <div className="space-y-5">
-                                {/* Plan */}
-                                <div className="bg-sky-50/50 p-4 rounded-xl border border-sky-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-sky-700 font-bold flex items-center gap-2"><Settings2 className="w-4 h-4"/> Plan 计划</label>
-                                        <button onClick={() => handleSavePdca('plan')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.plan ? 'bg-sky-200 text-sky-700' : 'bg-white text-sky-600 border border-sky-200 hover:bg-sky-50'}`}>
-                                            {pdcaSaved.plan ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-sky-600/70 mb-2">制定计划：写下本周计划，计划做哪些事。</p>
-                                    <textarea 
-                                        ref={planRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.pdca_plan || '')}
-                                        onChange={(e) => updateReview('pdca_plan', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Do */}
-                                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-emerald-700 font-bold flex items-center gap-2"><Play className="w-4 h-4"/> Do 执行</label>
-                                        <button onClick={() => handleSavePdca('do')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.do ? 'bg-emerald-200 text-emerald-700' : 'bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50'}`}>
-                                            {pdcaSaved.do ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-emerald-600/70 mb-2">实施、执行：写下具体完成了哪些事。</p>
-                                    <textarea 
-                                        ref={doRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.pdca_do || '')}
-                                        onChange={(e) => updateReview('pdca_do', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Check */}
-                                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-amber-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Check 检查</label>
-                                        <button onClick={() => handleSavePdca('check')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.check ? 'bg-amber-200 text-amber-700' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}`}>
-                                            {pdcaSaved.check ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-amber-600/70 mb-2">检查、复盘：核对计划中哪些事没有完成，分析原因。</p>
-                                    <textarea 
-                                        ref={checkRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.pdca_check || '')}
-                                        onChange={(e) => updateReview('pdca_check', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Action */}
-                                <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="text-rose-700 font-bold flex items-center gap-2"><RotateCcw className="w-4 h-4"/> Action 处理</label>
-                                        <button onClick={() => handleSavePdca('action')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.action ? 'bg-rose-200 text-rose-700' : 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-50'}`}>
-                                            {pdcaSaved.action ? '已保存' : '保存'}
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-rose-600/70 mb-2">采取措施：针对没有完成的计划，后续有什么改善的措施。</p>
-                                    <textarea 
-                                        ref={actionRef}
-                                        rows={2}
-                                        className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 resize-none overflow-hidden transition-all text-gray-700"
-                                        value={String(data.pdca_action || '')}
-                                        onChange={(e) => updateReview('pdca_action', e.target.value)}
-                                    />
-                                </div>
+                                <div className="bg-sky-50/50 p-4 rounded-xl border border-sky-100"><div className="flex items-center justify-between mb-2"><label className="text-sky-700 font-bold flex items-center gap-2"><Settings2 className="w-4 h-4"/> Plan 计划</label><button onClick={() => handleSavePdca('plan')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.plan ? 'bg-sky-200 text-sky-700' : 'bg-white text-sky-600 border border-sky-200 hover:bg-sky-50'}`}>{pdcaSaved.plan ? '已保存' : '保存'}</button></div><p className="text-xs text-sky-600/70 mb-2">制定计划：写下本周计划，计划做哪些事。</p><textarea ref={planRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.pdca_plan || '')} onChange={(e) => updateReview('pdca_plan', e.target.value)} /></div>
+                                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100"><div className="flex items-center justify-between mb-2"><label className="text-emerald-700 font-bold flex items-center gap-2"><Play className="w-4 h-4"/> Do 执行</label><button onClick={() => handleSavePdca('do')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.do ? 'bg-emerald-200 text-emerald-700' : 'bg-white text-emerald-600 border border-emerald-200 hover:bg-emerald-50'}`}>{pdcaSaved.do ? '已保存' : '保存'}</button></div><p className="text-xs text-emerald-600/70 mb-2">实施、执行：写下具体完成了哪些事。</p><textarea ref={doRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.pdca_do || '')} onChange={(e) => updateReview('pdca_do', e.target.value)} /></div>
+                                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100"><div className="flex items-center justify-between mb-2"><label className="text-amber-700 font-bold flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Check 检查</label><button onClick={() => handleSavePdca('check')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.check ? 'bg-amber-200 text-amber-700' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}`}>{pdcaSaved.check ? '已保存' : '保存'}</button></div><p className="text-xs text-amber-600/70 mb-2">检查、复盘：核对计划中哪些事没有完成，分析原因。</p><textarea ref={checkRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.pdca_check || '')} onChange={(e) => updateReview('pdca_check', e.target.value)} /></div>
+                                <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100"><div className="flex items-center justify-between mb-2"><label className="text-rose-700 font-bold flex items-center gap-2"><RotateCcw className="w-4 h-4"/> Action 处理</label><button onClick={() => handleSavePdca('action')} className={`text-[10px] px-2 py-1 rounded-full transition-all font-bold ${pdcaSaved.action ? 'bg-rose-200 text-rose-700' : 'bg-white text-rose-600 border border-rose-200 hover:bg-rose-50'}`}>{pdcaSaved.action ? '已保存' : '保存'}</button></div><p className="text-xs text-rose-600/70 mb-2">采取措施：针对没有完成的计划，后续有什么改善的措施。</p><textarea ref={actionRef} rows={2} className="w-full bg-white rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200 resize-none overflow-hidden transition-all text-gray-700" value={String(data.pdca_action || '')} onChange={(e) => updateReview('pdca_action', e.target.value)} /></div>
                             </div>
                         </div>
                     ) : (
-                        // 默认通用复盘 (备用)
                         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2"><PenLine className="w-5 h-5 text-emerald-500" /><h4 className="font-bold text-gray-800 text-sm">周期心得总结</h4></div>
-                                <button onClick={handleSaveSummary} className={`text-xs px-3 py-1.5 rounded-full transition-all font-bold ${summarySaved ? 'bg-green-100 text-green-600' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}>
-                                    {summarySaved ? <span className="flex items-center gap-1"><Check className="w-3 h-3"/> 已保存</span> : '保存'}
-                                </button>
-                            </div>
-                            <textarea 
-                                ref={summaryRef}
-                                className="w-full min-h-[96px] bg-gray-50 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-200 resize-none placeholder:text-gray-400 overflow-hidden transition-all" 
-                                placeholder={`写下这${period === 'weekly' ? '一周' : '一段时间'}的心得体会或下一步计划...`} 
-                                value={String(data.summary || '')} 
-                                onChange={(e) => updateReview('summary', e.target.value)} 
-                            />
+                            <div className="flex items-center justify-between mb-3"><div className="flex items-center gap-2"><PenLine className="w-5 h-5 text-emerald-500" /><h4 className="font-bold text-gray-800 text-sm">周期心得总结</h4></div><button onClick={handleSaveSummary} className={`text-xs px-3 py-1.5 rounded-full transition-all font-bold ${summarySaved ? 'bg-green-100 text-green-600' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}>{summarySaved ? <span className="flex items-center gap-1"><Check className="w-3 h-3"/> 已保存</span> : '保存'}</button></div>
+                            <textarea ref={summaryRef} className="w-full min-h-[96px] bg-gray-50 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-200 resize-none placeholder:text-gray-400 overflow-hidden transition-all" placeholder={`写下这${period === 'weekly' ? '一周' : '一段时间'}的心得体会或下一步计划...`} value={String(data.summary || '')} onChange={(e) => updateReview('summary', e.target.value)} />
                         </div>
                     )}
                 </div>
@@ -1002,118 +619,167 @@
             );
         };
 
-        // --- Main App Component ---
+        const getStorageKey = (key, uid) => `${key}_${uid}`;
+
+        const migrateLegacyData = (uid) => {
+            const keys = ['lifeos_sections_v2', 'lifeos_tasks', 'lifeos_reviews', 'lifeos_theme'];
+            let hasMigrated = false;
+            
+            keys.forEach(baseKey => {
+                const legacyData = localStorage.getItem(baseKey);
+                const userKey = getStorageKey(baseKey, uid);
+                const userData = localStorage.getItem(userKey);
+                
+                // If legacy data exists AND user data does NOT exist, migrate
+                if (legacyData && !userData) {
+                    localStorage.setItem(userKey, legacyData);
+                    hasMigrated = true;
+                    console.log(`Migrated ${baseKey} to ${userKey}`);
+                }
+            });
+            return hasMigrated;
+        };
+
         function App() {
             const [currentDate, setCurrentDate] = useState(new Date()); 
             const [selectedDateStr, setSelectedDateStr] = useState(generateDateString(new Date())); 
             
-            // Initial Config & Firebase
+            // --- State Initialization (Empty) ---
+            const [sections, setSections] = useState(INITIAL_SECTIONS);
+            const [tasksByDate, setTasksByDate] = useState(INITIAL_TASKS_BY_DATE);
+            const [reviews, setReviews] = useState({});
+            const [globalTheme, setGlobalTheme] = useState({ pageBg: 'gray', headerBg: 'white', cardStyle: 'default' });
+            
+            const [isDataLoaded, setIsDataLoaded] = useState(false);
+            const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+            const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+            
+            // Firebase Refs
             const [firebaseConfig, setFirebaseConfig] = useState(() => JSON.parse(localStorage.getItem('lifeos_fb_config') || 'null'));
-            const [firebaseApp, setFirebaseApp] = useState(null);
             const [firebaseAuth, setFirebaseAuth] = useState(null);
             const [firebaseDb, setFirebaseDb] = useState(null);
             const [user, setUser] = useState(null);
-            const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-            const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
             const isRemoteUpdate = useRef(false);
 
-            // Initialize Firebase if config exists
+            // 1. Initialize Firebase if Config Present
             useEffect(() => {
                 if (firebaseConfig) {
                     try {
                         const app = initializeApp(firebaseConfig);
-                        setFirebaseApp(app);
                         setFirebaseAuth(getAuth(app));
                         setFirebaseDb(getFirestore(app));
                     } catch (e) {
-                        console.error("Firebase init failed", e);
-                        alert("Firebase 配置无效，已重置。请重新输入。");
-                        setFirebaseConfig(null);
+                        console.error("Firebase init error", e);
+                        alert("Firebase 配置无效，已重置。");
                         localStorage.removeItem('lifeos_fb_config');
+                        setFirebaseConfig(null);
                     }
                 }
             }, [firebaseConfig]);
 
-            // Auth Listener
+            // 2. Main Data Loading Effect (Auth Sensitive)
             useEffect(() => {
+                let unsubscribe = null;
+
+                const loadData = async (uid) => {
+                    setIsDataLoaded(false);
+                    
+                    // A. Migration Check
+                    migrateLegacyData(uid);
+
+                    // B. Load Local Data (User Specific)
+                    const localSections = JSON.parse(localStorage.getItem(getStorageKey('lifeos_sections_v2', uid)));
+                    const localTasks = JSON.parse(localStorage.getItem(getStorageKey('lifeos_tasks', uid)));
+                    const localReviews = JSON.parse(localStorage.getItem(getStorageKey('lifeos_reviews', uid)));
+                    const localTheme = JSON.parse(localStorage.getItem(getStorageKey('lifeos_theme', uid)));
+
+                    if (localSections) setSections(localSections);
+                    if (localTasks) setTasksByDate(localTasks);
+                    if (localReviews) setReviews(localReviews);
+                    if (localTheme) setGlobalTheme(localTheme);
+
+                    // C. Cloud Sync (If Logged In)
+                    if (uid !== 'guest' && firebaseDb) {
+                        const docRef = doc(firebaseDb, 'users', uid, 'data', 'main');
+                        unsubscribe = onSnapshot(docRef, (snap) => {
+                            if (snap.exists()) {
+                                const data = snap.data();
+                                isRemoteUpdate.current = true;
+                                if (data.sections) setSections(data.sections);
+                                if (data.tasksByDate) setTasksByDate(data.tasksByDate);
+                                if (data.reviews) setReviews(data.reviews);
+                                if (data.globalTheme) setGlobalTheme(data.globalTheme);
+                                // Small delay to prevent echo
+                                setTimeout(() => { isRemoteUpdate.current = false; }, 100);
+                            } else {
+                                // Upload local data if cloud is empty (First Sync)
+                                setDoc(docRef, { 
+                                    sections: localSections || INITIAL_SECTIONS, 
+                                    tasksByDate: localTasks || INITIAL_TASKS_BY_DATE, 
+                                    reviews: localReviews || {}, 
+                                    globalTheme: localTheme || { pageBg: 'gray', headerBg: 'white', cardStyle: 'default' } 
+                                });
+                            }
+                        });
+                    }
+                    
+                    setIsDataLoaded(true);
+                };
+
                 if (firebaseAuth) {
-                    const unsub = onAuthStateChanged(firebaseAuth, (u) => {
+                    // Wait for Auth State
+                    const authUnsub = onAuthStateChanged(firebaseAuth, (u) => {
                         setUser(u);
-                        if (u) {
-                            // On Login: Initial fetch or merge could happen here. 
-                            // For simplicity, we just let the snapshot listener take over.
-                        }
+                        loadData(u ? u.uid : 'guest');
                     });
-                    return unsub;
+                    return () => { authUnsub(); if(unsubscribe) unsubscribe(); };
+                } else {
+                    // Guest Mode
+                    loadData('guest');
                 }
-            }, [firebaseAuth]);
+            }, [firebaseAuth, firebaseDb]);
 
-            // State Initialization (Local First)
-            // 使用 v2 键名以强制更新板块结构
-            const [sections, setSections] = useState(() => JSON.parse(localStorage.getItem('lifeos_sections_v2')) || INITIAL_SECTIONS);
-            const [tasksByDate, setTasksByDate] = useState(() => JSON.parse(localStorage.getItem('lifeos_tasks')) || INITIAL_TASKS_BY_DATE);
-            const [reviews, setReviews] = useState(() => JSON.parse(localStorage.getItem('lifeos_reviews')) || {});
-            const [globalTheme, setGlobalTheme] = useState(() => JSON.parse(localStorage.getItem('lifeos_theme')) || { pageBg: 'gray', headerBg: 'white', cardStyle: 'default' });
-
-            // Firestore Listener (Cloud Load)
-            useEffect(() => {
-                if (user && firebaseDb) {
-                    const docRef = doc(firebaseDb, 'users', user.uid, 'data', 'main');
-                    const unsub = onSnapshot(docRef, (snap) => {
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            isRemoteUpdate.current = true; // Mark as remote update to prevent loop
-                            if (data.sections) setSections(data.sections);
-                            if (data.tasksByDate) setTasksByDate(data.tasksByDate);
-                            if (data.reviews) setReviews(data.reviews);
-                            if (data.globalTheme) setGlobalTheme(data.globalTheme);
-                            setTimeout(() => { isRemoteUpdate.current = false; }, 100);
-                        } else {
-                            // First time login with no data: Upload local data
-                            setDoc(docRef, { sections, tasksByDate, reviews, globalTheme });
-                        }
-                    });
-                    return unsub;
-                }
-            }, [user, firebaseDb]);
-
-            // Local Persist & Cloud Save
-            const saveData = (key, val) => {
-                // Always save locally
-                localStorage.setItem(key, JSON.stringify(val));
+            // 3. Save Data Effect (Debounced or Direct)
+            const saveData = (keySuffix, data) => {
+                if (!isDataLoaded) return; // Critical Safety Lock
                 
-                // If logged in and not a remote update, save to cloud
+                const uid = user ? user.uid : 'guest';
+                const key = getStorageKey(keySuffix, uid);
+                localStorage.setItem(key, JSON.stringify(data));
+
                 if (user && firebaseDb && !isRemoteUpdate.current) {
-                    const docRef = doc(firebaseDb, 'users', user.uid, 'data', 'main');
-                    // We use merge: true to update fields individually if needed, 
-                    // but here we are mapping state keys directly.
-                    // To avoid overwriting everything with stale data, we construct the update object.
-                    let updateObj = {};
-                    if (key === 'lifeos_sections_v2') updateObj.sections = val;
-                    if (key === 'lifeos_tasks') updateObj.tasksByDate = val;
-                    if (key === 'lifeos_reviews') updateObj.reviews = val;
-                    if (key === 'lifeos_theme') updateObj.globalTheme = val;
-                    setDoc(docRef, updateObj, { merge: true }).catch(e => console.error("Save failed", e));
+                    const docRef = doc(firebaseDb, 'users', uid, 'data', 'main');
+                    // Map suffix to object key
+                    const fieldMap = {
+                        'lifeos_sections_v2': 'sections',
+                        'lifeos_tasks': 'tasksByDate',
+                        'lifeos_reviews': 'reviews',
+                        'lifeos_theme': 'globalTheme'
+                    };
+                    const fieldName = fieldMap[keySuffix];
+                    if (fieldName) {
+                        setDoc(docRef, { [fieldName]: data }, { merge: true }).catch(e => console.error("Save Error", e));
+                    }
                 }
             };
 
-            // Wrapped Setters
-            useEffect(() => saveData('lifeos_sections_v2', sections), [sections]);
-            useEffect(() => saveData('lifeos_tasks', tasksByDate), [tasksByDate]);
-            useEffect(() => saveData('lifeos_reviews', reviews), [reviews]);
-            useEffect(() => saveData('lifeos_theme', globalTheme), [globalTheme]);
+            useEffect(() => saveData('lifeos_sections_v2', sections), [sections, isDataLoaded]);
+            useEffect(() => saveData('lifeos_tasks', tasksByDate), [tasksByDate, isDataLoaded]);
+            useEffect(() => saveData('lifeos_reviews', reviews), [reviews, isDataLoaded]);
+            useEffect(() => saveData('lifeos_theme', globalTheme), [globalTheme, isDataLoaded]);
 
+            // --- Handlers ---
             const handleSaveConfig = (jsonStr) => {
                 try {
                     const config = JSON.parse(jsonStr);
                     localStorage.setItem('lifeos_fb_config', JSON.stringify(config));
                     setFirebaseConfig(config);
                     setIsConfigModalOpen(false);
-                } catch (e) { alert("配置格式错误 (必须是 JSON)"); }
+                } catch (e) { alert("配置格式错误"); }
             };
 
             const handleLogout = async () => {
-                if (confirm("确定要退出登录吗？数据将保留在本地。")) {
+                if (confirm("确定退出登录？数据将保留在本地 (guest)。")) {
                     await signOut(firebaseAuth);
                 }
             };
@@ -1149,11 +815,9 @@
                 reader.readAsText(file);
             };
 
-            // --- Regular App State ---
+            // --- UI State & Logic ---
             const [quote, setQuote] = useState(() => GROWTH_QUOTES[Math.floor(Math.random() * GROWTH_QUOTES.length)]);
             const [reviewDate, setReviewDate] = useState(new Date()); 
-            
-            // UI State
             const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
             const [isNoteModalOpen, setIsNoteModalOpen] = useState(false); 
             const [currentTask, setCurrentTask] = useState(null); 
@@ -1169,7 +833,6 @@
             const [isReviewCenterOpen, setIsReviewCenterOpen] = useState(false);
             const [reviewTab, setReviewTab] = useState('daily'); 
             const [inputTime, setInputTime] = useState(''); 
-
             const [isTimerOpen, setIsTimerOpen] = useState(false);
             const [timerActive, setTimerActive] = useState(false);
             const [timerTime, setTimerTime] = useState(25 * 60); 
@@ -1179,7 +842,6 @@
 
             const calendarDates = useMemo(() => generateCalendarDates(currentDate), [currentDate]);
 
-            // Timer Logic
             useEffect(() => {
                 let interval = null;
                 if (timerActive && timerTime > 0) {
@@ -1283,6 +945,16 @@
             const refreshQuote = () => { setQuote(GROWTH_QUOTES[Math.floor(Math.random() * GROWTH_QUOTES.length)]); };
             const openStats = (period) => { setStatsPeriod(period); setIsStatsModalOpen(true); };
             const openReviewCenter = (tab) => { setReviewTab(tab); setReviewDate(currentDate); setIsReviewCenterOpen(true); };
+
+            // Render Loading if Data not ready
+            if (!isDataLoaded) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-gray-50 flex-col gap-4">
+                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                        <span className="text-sm text-gray-500 font-medium">正在加载数据...</span>
+                    </div>
+                );
+            }
 
             return (
                 <div className={`min-h-screen font-sans text-slate-800 pb-20 selection:bg-blue-100 ${PALETTE[globalTheme.pageBg]?.bg || 'bg-[#F5F7FA]'}`}>
