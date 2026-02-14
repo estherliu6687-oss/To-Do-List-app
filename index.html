@@ -146,6 +146,44 @@
             const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
             const link = document.createElement('a'); link.href = window.URL.createObjectURL(blob); link.setAttribute('download', `${title}_${dateStr}.ics`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
+        
+        const getMinutes = (timeStr) => {
+            if (!timeStr) return -1;
+            const startStr = timeStr.split('-')[0]; 
+            const [h, m] = startStr.split(/[:：]/).map(Number);
+            if (isNaN(h) || isNaN(m)) return -1;
+            return h * 60 + m;
+        };
+
+        const getEndMinutes = (timeStr) => {
+            if (!timeStr || !timeStr.includes('-')) return -1;
+            const endStr = timeStr.split('-')[1];
+            const [h, m] = endStr.split(/[:：]/).map(Number);
+            if (isNaN(h) || isNaN(m)) return -1;
+            return h * 60 + m;
+        };
+
+        const confirmActionTime = (plannedTime, actionLabel) => {
+            const now = new Date();
+            const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const displayPlan = plannedTime ? plannedTime.trim() : '未设置';
+            
+            const promptText = `确认${actionLabel}时间：
+1 - 按原计划（${displayPlan}）
+2 - 按现在时间（${currentHHMM}）
+3 - 手动输入（如 14:30）
+
+请输入选项数字或具体时间：`;
+
+            const input = window.prompt(promptText, "2"); 
+            
+            if (input === null) return null; 
+            
+            const val = input.trim();
+            if (val === '1') return plannedTime || currentHHMM; 
+            if (val === '2') return currentHHMM;
+            return val; 
+        };
 
         // --- Constants ---
         const GROWTH_QUOTES = ["每一次相遇，都可以用5天时间慢慢认识对方。", "星光不问赶路人，时光不负有心人。", "不是‘我不行’，而是‘我暂时还不行’。", "拥抱挑战，那是成长的信号。", "天赋决定下限，努力决定上限。", "允许自己休息，但别忘了重新出发。", "今天比昨天进步一点点，就是胜利。", "把困难当作打怪升级，经验值正在疯涨。", "专注当下，未来自会呈现。"];
@@ -192,7 +230,7 @@
         const CircularProgress = ({ percentage, label, subLabel, colorClass, trackClass, onClick }) => {const radius = 18; const circumference = 2 * Math.PI * radius; const strokeDashoffset = circumference - (percentage / 100) * circumference; return (<div className="flex flex-col items-center justify-center group cursor-pointer relative z-10" onClick={onClick} style={{ pointerEvents: 'auto' }}><div className="relative w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105"><svg className="w-full h-full transform -rotate-90"><circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" className={trackClass} /><circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" className={colorClass} /></svg><span className="absolute text-[10px] font-bold text-gray-600">{percentage}%</span></div><div className="mt-1 text-center"><div className="text-[10px] text-gray-400 group-hover:text-blue-500 transition-colors">{label}</div><div className="text-xs font-bold text-gray-800">{subLabel}</div></div></div>);};
         const AdvancedPieChart = ({ data, totalMins }) => {if (!data || data.length === 0) return null; let cumulativePercent = 0; const getCoordinates = (percent, radius = 1) => { const rad = 2 * Math.PI * (percent - 0.25); const x = Math.cos(rad) * radius; const y = Math.sin(rad) * radius; return [x, y]; }; const formatDuration = (mins) => { const h = Math.floor(mins / 60); const m = mins % 60; if (h > 0 && m > 0) return `${h}小时${m}分`; if (h > 0) return `${h}小时`; return `${m}分`; }; return (<div className="relative w-full aspect-square max-w-sm mx-auto my-4"><svg viewBox="-2 -2 4 4" className="w-full h-full overflow-visible">{data.map((item, index) => { const percent = item.value / totalMins; const [startX, startY] = getCoordinates(cumulativePercent); const midPercent = cumulativePercent + percent / 2; cumulativePercent += percent; const [endX, endY] = getCoordinates(cumulativePercent); const largeArcFlag = percent > 0.5 ? 1 : 0; const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`; const [midX, midY] = getCoordinates(midPercent); const isRight = midX > 0; const elbowX = midX * 1.15; const elbowY = midY * 1.15; const textStartX = isRight ? elbowX + 0.2 : elbowX - 0.2; return (<g key={index}><path d={pathData} fill={item.color} stroke="white" strokeWidth="0.02" className="hover:opacity-90 transition-opacity cursor-pointer" />{percent > 0.03 && (<React.Fragment><polyline points={`${midX},${midY} ${elbowX},${elbowY} ${textStartX},${elbowY}`} fill="none" stroke="#9ca3af" strokeWidth="0.015" /><text x={isRight ? textStartX + 0.05 : textStartX - 0.05} y={elbowY - 0.06} fill="#4b5563" fontSize="0.16" textAnchor={isRight ? 'start' : 'end'} alignmentBaseline="baseline" className="font-bold">{item.tag}</text><text x={isRight ? textStartX + 0.05 : textStartX - 0.05} y={elbowY + 0.14} fill="#6b7280" fontSize="0.12" textAnchor={isRight ? 'start' : 'end'} alignmentBaseline="baseline">{formatDuration(item.value)}</text></React.Fragment>)}</g>);})}</svg></div>);};
         
-        // 优化后的统计卡片：极度扁平化 - 极致压缩版
+        // 极简扁平化统计卡片 - 极致压缩版
         const StatCard = ({ number, title, subText, colorTheme }) => {
             const themes = {
                 red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100' },
@@ -210,7 +248,7 @@
             );
         };
 
-        const TaskCard = ({ task, onToggle, onEdit, onDelete, onNote, onRemind, onStart, cardStyle, sectionColor }) => {
+        const TaskCard = ({ task, onToggle, onEdit, onDelete, onNote, onRemind, onStart, cardStyle, sectionColor, isOverlap }) => {
             const [showMenu, setShowMenu] = useState(false); // 控制左上角菜单显示
             
             const getMatrixTag = () => {
@@ -226,13 +264,18 @@
             const bgClass = task.completed ? 'bg-white border-gray-100' : cardStyle === 'colored' && theme ? `${theme.cardBg} border-transparent` : 'bg-white border-gray-100 hover:shadow-md'; 
             
             return (
-                <div className={`p-2.5 rounded-xl shadow-sm border transition-all duration-300 group mb-2 relative cursor-pointer flex items-start gap-3 ${bgClass}`} onClick={() => onToggle(task.id)}>
+                <div className={`p-2.5 rounded-xl shadow-sm border transition-all duration-300 group mb-0 relative cursor-pointer flex items-start gap-3 ${bgClass}`} onClick={() => onToggle(task)}>
                     
+                    {/* 时间冲突视觉警示 */}
+                    {isOverlap && !task.completed && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-400 z-10 rounded-l-xl" title="时间冲突"></div>
+                    )}
+
                     {/* [新功能] 左上角隐形菜单触发器 - 绝对定位 */}
                     <div className="absolute top-1 left-1 z-30">
                         <button 
                             onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                            className={`p-1.5 rounded-full transition-all ${showMenu ? 'bg-blue-50 text-blue-600 opacity-100' : 'text-gray-200 hover:text-gray-400 opacity-0 group-hover:opacity-100'}`}
+                            className={`p-1.5 rounded-full transition-all ${showMenu ? 'bg-blue-100 text-blue-600 opacity-100' : 'text-gray-300 hover:text-gray-400'}`}
                             title="更多操作"
                         >
                             <MoreHorizontal className="w-3.5 h-3.5" />
@@ -256,10 +299,10 @@
                     </div>
 
                     {/* 时间列 */}
-                    <div className="flex flex-col items-end justify-center min-w-[4rem] border-r-2 border-gray-100 pr-3 py-1 self-stretch">
+                    <div className={`flex flex-col items-end justify-center min-w-[4rem] border-r-2 border-gray-100 pr-3 py-1 self-stretch ${isOverlap && !task.completed ? 'pl-2' : ''}`}>
                         {task.time ? (
                             <>
-                                <span className="text-sm font-black font-mono text-slate-700 leading-none">{task.time.split('-')[0]}</span>
+                                <span className={`text-sm font-black font-mono leading-none ${isOverlap && !task.completed ? 'text-red-500' : 'text-slate-700'}`}>{task.time.split('-')[0]}</span>
                                 <span className="text-[10px] font-bold text-gray-400 leading-none mt-1">{task.time.split('-')[1] ? '-' + task.time.split('-')[1] : ''}</span>
                             </>
                         ) : (
@@ -283,7 +326,9 @@
                                         <Play className="w-3 h-3 group-hover/play:fill-green-600" /><span>执行</span>
                                     </button>
                                 ) : (
-                                    <span className="text-[10px] text-green-500 font-bold flex items-center gap-0.5 bg-green-50 px-1.5 py-0.5 rounded animate-pulse"><Zap className="w-3 h-3 fill-green-500"/> 进行中</span>
+                                    <span className="text-[10px] text-green-600 font-bold flex items-center gap-0.5 bg-green-50 px-1.5 py-0.5 rounded border border-green-100" title="实际开始时间">
+                                        <Zap className="w-3 h-3 fill-green-500"/> {task.actualStart.includes('T') ? task.actualStart.split('T')[1].substring(0,5) : task.actualStart}
+                                    </span>
                                 )}
                                 <button className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded hover:bg-pink-50 hover:text-pink-600 text-gray-400 transition-all" onClick={(e) => { e.stopPropagation(); onNote(task); }}>
                                     <PenLine className="w-3 h-3" /><span>备注</span>
@@ -295,7 +340,6 @@
                         </div>
                         {task.note && (<div className={`mt-2 px-2 py-1.5 rounded-lg text-xs flex gap-2 items-start border transition-colors ${task.completed ? 'bg-gray-50 border-gray-100 text-gray-300' : 'bg-yellow-50 border-yellow-100/50 text-gray-600'}`}><StickyNote className={`w-3 h-3 mt-0.5 flex-shrink-0 ${task.completed ? 'text-gray-300' : 'text-yellow-400'}`} /><span className="line-clamp-1">{String(task.note)}</span></div>)}
                     </div>
-                    
                     <div className="flex-shrink-0 ml-1 self-center">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${task.completed ? 'bg-green-400 shadow-sm scale-110' : 'border-2 border-gray-200 hover:border-indigo-300 bg-white'}`}>
                             {task.completed && <Check className="w-4 h-4 text-white stroke-[3]" />}
@@ -735,37 +779,68 @@
             const handleDatePickerChange = (e) => { if (e.target.value) { const [y, m, d] = e.target.value.split('-').map(Number); handleDateSelect(new Date(y, m - 1, d)); } };
             const handleBackToToday = () => { const today = new Date(); setCurrentDate(today); setSelectedDateStr(generateDateString(today)); };
             
-            const handleToggleTask = (id) => { 
+            const handleToggleTask = (task) => { 
                 setTasksByDate(prev => { 
-                    const d = { ...(prev[selectedDateStr] || {}) }; 
+                    const newMap = { ...prev };
+                    const d = { ...(newMap[selectedDateStr] || {}) }; 
                     let s = null; 
-                    for (const k of [...sections.map(x => x.id), 'fragmentary']) { if (d[k]?.some(t => t.id === id)) { s = k; break; } } 
+                    // Find section
+                    for (const k of [...sections.map(x => x.id), 'fragmentary']) { if (d[k]?.some(t => t.id === task.id)) { s = k; break; } } 
+                    
                     if (s) { 
-                        const newTasks = d[s].map(t => t.id === id ? { ...t, completed: !t.completed } : t); d[s] = newTasks;
-                        const allDayTasks = []; [...sections.map(sec => sec.id), 'fragmentary'].forEach(secId => { allDayTasks.push(...(secId === s ? newTasks : (d[secId] || []))); });
-                        const total = allDayTasks.length; const completed = allDayTasks.filter(t => t.completed).length;
-                        if (total > 0 && completed === total) { setCelebrationQuote(GROWTH_QUOTES[Math.floor(Math.random() * GROWTH_QUOTES.length)]); setShowCelebration(true); }
-                    } return { ...prev, [selectedDateStr]: d }; 
+                        // 如果当前是“未完成”状态，准备变成“完成” -> 弹出时间确认
+                        let actualEnd = task.actualEnd;
+                        let completed = !task.completed;
+
+                        if (!task.completed) {
+                            // 弹出确认结束时间
+                            const plannedEnd = task.time ? (task.time.split('-')[1] || '') : '';
+                            const endTime = confirmActionTime(plannedEnd, "结束");
+                            
+                            // 如果用户取消，则不改变状态
+                            if (endTime === null) return prev;
+                            
+                            actualEnd = endTime;
+                        } else {
+                            // 如果是取消完成，清空结束时间
+                            actualEnd = '';
+                        }
+
+                        const newTasks = d[s].map(t => t.id === task.id ? { ...t, completed, actualEnd } : t);
+                        d[s] = newTasks;
+                        
+                        // 庆祝逻辑保持不变
+                        if (completed) {
+                            const allDayTasks = []; [...sections.map(sec => sec.id), 'fragmentary'].forEach(secId => { allDayTasks.push(...(secId === s ? newTasks : (d[secId] || []))); });
+                            const total = allDayTasks.length; const count = allDayTasks.filter(t => t.completed).length;
+                            if (total > 0 && count === total) { setCelebrationQuote(GROWTH_QUOTES[Math.floor(Math.random() * GROWTH_QUOTES.length)]); setShowCelebration(true); }
+                        }
+                    } 
+                    return { ...newMap, [selectedDateStr]: d }; 
                 }); 
             };
             
             const handleStartTask = (task, sectionId) => {
                 if (task.completed || task.actualStart) return;
-                const newTitle = window.prompt("确认按原计划执行吗？如需更改，请在此输入新任务名。", task.title);
-                if (newTitle !== null) {
+
+                // 提取计划开始时间
+                const plannedStart = task.time ? task.time.split('-')[0] : '';
+                
+                // 弹出确认
+                const startTime = confirmActionTime(plannedStart, "开始");
+                
+                if (startTime !== null) {
                     setTasksByDate(prev => {
                         const newMap = { ...prev };
                         const dateTasks = { ...(newMap[selectedDateStr] || {}) };
                         const listKey = sectionId === 'fragmentary' ? 'fragmentary' : sectionId;
+
                         if (dateTasks[listKey]) {
                             dateTasks[listKey] = dateTasks[listKey].map(t => {
                                 if (t.id === task.id) {
-                                    const titleChanged = newTitle.trim() && newTitle !== t.title;
                                     return {
                                         ...t,
-                                        actualStart: new Date().toISOString(), 
-                                        title: titleChanged ? newTitle : t.title,
-                                        originalTitle: titleChanged ? t.title : (t.originalTitle || '')
+                                        actualStart: startTime // 记录确定的时间
                                     };
                                 }
                                 return t;
@@ -829,6 +904,47 @@
                     </div>
                 );
             }
+            
+            // [新增] 任务排序与冲突检测逻辑
+            const processTasksForTimeline = (taskList) => {
+                if (!taskList || taskList.length === 0) return [];
+
+                // 1. 分离有时段任务和无时段任务
+                const timedTasks = [];
+                const untimedTasks = [];
+
+                taskList.forEach(t => {
+                    const startMins = getMinutes(t.time);
+                    if (startMins !== -1) {
+                        timedTasks.push({ ...t, _startMins: startMins, _endMins: getEndMinutes(t.time) });
+                    } else {
+                        untimedTasks.push(t);
+                    }
+                });
+
+                // 2. 按开始时间排序
+                timedTasks.sort((a, b) => a._startMins - b._startMins);
+
+                // 3. 冲突检测
+                let maxEndTime = -1;
+                const processedTimedTasks = timedTasks.map((t, index) => {
+                    let isOverlap = false;
+                    // 如果不是第一个任务，且当前任务开始时间 < 上一个任务区域的最大结束时间
+                    if (index > 0 && t._startMins < maxEndTime) {
+                        isOverlap = true;
+                    }
+                    
+                    // 更新 maxEndTime
+                    if (t._endMins > maxEndTime) {
+                        maxEndTime = t._endMins;
+                    }
+
+                    return { ...t, isOverlap };
+                });
+
+                // 4. 合并列表 (无时间任务在最后)
+                return [...processedTimedTasks, ...untimedTasks];
+            };
 
             return (
                 <div className={`min-h-screen font-sans text-slate-800 pb-20 selection:bg-blue-100 ${PALETTE[globalTheme.pageBg]?.bg || 'bg-[#F5F7FA]'}`}>
@@ -922,7 +1038,26 @@
                             {sections.map(section => (
                                 <div key={section.id}>
                                     <div className="flex justify-between items-center mb-2"><div className="flex items-center gap-2"><React.Fragment>{React.createElement(ICON_MAP[section.icon] || Circle, { className: `w-5 h-5 ${COLOR_THEMES[section.color]?.icon || 'text-gray-400'} fill-current` })}</React.Fragment><h2 className={`font-bold text-lg ${COLOR_THEMES[section.color]?.text || 'text-gray-700'}`}>{section.title}</h2></div><button onClick={() => downloadICS(tasks[section.id], selectedDateStr, section.title)} className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors ${COLOR_THEMES[section.color]?.bg || 'bg-gray-100'} ${COLOR_THEMES[section.color]?.text || 'text-gray-600'} ${COLOR_THEMES[section.color]?.buttonBg || 'hover:bg-gray-200'}`}><Bell className="w-3 h-3" /> 提醒</button></div>
-                                    <div className={`space-y-3 min-h-[50px] p-2.5 rounded-xl border border-dashed ${COLOR_THEMES[section.color]?.border || 'border-gray-200'} ${COLOR_THEMES[section.color]?.bg || 'bg-gray-50'} bg-opacity-30`}>{tasks[section.id]?.length === 0 && <div className="text-center py-4 text-gray-400 text-xs">本日暂无安排</div>}{tasks[section.id]?.map(task => (<TaskCard key={task.id} task={task} onToggle={handleToggleTask} onEdit={(t) => handleEditTask(t, section.id)} onDelete={(id) => handleDeleteTaskDirectly(id, section.id)} onNote={handleOpenNote} onRemind={handleTaskRemind} onStart={(t) => handleStartTask(t, section.id)} cardStyle={globalTheme.cardStyle} sectionColor={section.color} />))}</div>
+                                    <div className={`space-y-2 min-h-[50px] p-2.5 rounded-xl border border-dashed ${COLOR_THEMES[section.color]?.border || 'border-gray-200'} ${COLOR_THEMES[section.color]?.bg || 'bg-gray-50'} bg-opacity-30`}>
+                                        {(!tasks[section.id] || tasks[section.id].length === 0) && <div className="text-center py-4 text-gray-400 text-xs">本日暂无安排</div>}
+                                        {/* [修改点] 使用新的排序和冲突检测逻辑 */}
+                                        {processTasksForTimeline(tasks[section.id]).map(task => (
+                                            <TaskCard 
+                                                key={task.id} 
+                                                task={task} 
+                                                onToggle={handleToggleTask} 
+                                                onEdit={(t) => handleEditTask(t, section.id)} 
+                                                onDelete={(id) => handleDeleteTaskDirectly(id, section.id)} 
+                                                onNote={handleOpenNote} 
+                                                onRemind={handleTaskRemind} 
+                                                onStart={(t) => handleStartTask(t, section.id)} 
+                                                cardStyle={globalTheme.cardStyle} 
+                                                sectionColor={section.color}
+                                                // 传递冲突状态
+                                                isOverlap={task.isOverlap}
+                                            />
+                                        ))}
+                                    </div>
                                     <button onClick={() => handleAddTask(section.id)} className={`w-full py-3 mt-3 rounded-xl border-2 border-dashed ${COLOR_THEMES[section.color]?.border || 'border-gray-300'} ${COLOR_THEMES[section.color]?.text || 'text-gray-500'} flex items-center justify-center hover:${COLOR_THEMES[section.color]?.bg || 'bg-gray-100'} transition-colors group`}><Plus className="w-5 h-5 group-hover:scale-110 transition-transform" /></button>
                                 </div>
                             ))}
@@ -930,15 +1065,22 @@
 
                         <div className="bg-white rounded-xl p-4 shadow-sm mb-8">
                             <div className="flex items-center justify-between mb-4"><div className="flex items-center gap-3"><span className="bg-yellow-100 text-yellow-600 text-xs font-bold px-2 py-1 rounded">TODO</span><span className="font-bold text-slate-700">碎片清单</span></div><button onClick={() => handleAddTask('fragmentary')} className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 transition flex items-center gap-1"><Plus className="w-3 h-3" /> 添加</button></div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{tasks.fragmentary?.map(task => (
-                                <div key={task.id} onClick={() => handleToggleTask(task.id)} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition group">
-                                    <div className="flex items-center gap-3"><button onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }} className="text-gray-300 hover:text-indigo-500 flex-shrink-0">{task.completed ? <CheckCircle2 className="w-5 h-5 text-indigo-500" /> : <Circle className="w-5 h-5" />}</button><span className={`text-sm text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</span></div>
-                                    <div className="flex items-center gap-1">
-                                        <button onClick={(e) => { e.stopPropagation(); handleEditTask(task, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition"><Edit3 className="w-3.5 h-3.5" /></button>
-                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTaskDirectly(task.id, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {/* [修改点] 碎片清单依然保持基础排序，无需冲突检测 */}
+                                {tasks.fragmentary && [...tasks.fragmentary].sort((a, b) => {
+                                    const timeA = a.time ? a.time.split('-')[0] : '23:59';
+                                    const timeB = b.time ? b.time.split('-')[0] : '23:59';
+                                    return timeA.localeCompare(timeB);
+                                }).map(task => (
+                                    <div key={task.id} onClick={() => handleToggleTask(task)} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition group relative">
+                                        <div className="flex items-center gap-3"><button onClick={(e) => { e.stopPropagation(); handleToggleTask(task); }} className="text-gray-300 hover:text-indigo-500 flex-shrink-0">{task.completed ? <CheckCircle2 className="w-5 h-5 text-indigo-500" /> : <Circle className="w-5 h-5" />}</button><span className={`text-sm text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</span></div>
+                                        <div className="flex items-center gap-1">
+                                            <button onClick={(e) => { e.stopPropagation(); handleEditTask(task, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition"><Edit3 className="w-3.5 h-3.5" /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); handleDeleteTaskDirectly(task.id, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}</div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
