@@ -62,26 +62,23 @@
             BookOpen, Dumbbell, Music, Settings2, Edit3, Clock, Repeat, RotateCcw,
             StickyNote, Play, Pause, Timer, PieChart, BarChart3, Calendar as CalendarIcon,
             Target, Heart, TrendingUp, ListTodo, Sparkles, Check, Download, Palette,
-            Layout, PanelTop, Shuffle, Cloud, Loader2, LogIn, LogOut, User, Lock, Mail, AlertCircle, HardDrive, Upload
+            Layout, PanelTop, Shuffle, Cloud, Loader2, LogIn, LogOut, User, Lock, Mail, AlertCircle, HardDrive, Upload, MoreHorizontal
         } from 'lucide-react';
 
-        // --- 2. Utilities ---
+        // --- Utilities ---
         const generateDateString = (date) => {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
             const d = String(date.getDate()).padStart(2, '0');
             return `${y}-${m}-${d}`;
         };
-
         const getDayName = (dayIndex) => ['日', '一', '二', '三', '四', '五', '六'][dayIndex];
-
         const getWeekNumber = (d) => {
             d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
             const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         };
-
         const getWeekRange = (date) => {
             const day = date.getDay(); 
             const diff = date.getDate() - day + (day === 0 ? -6 : 1);
@@ -91,51 +88,35 @@
             end.setDate(start.getDate() + 6);
             return { start, end };
         };
-
         const getReviewId = (period, date) => {
             if (period === 'daily') return generateDateString(date);
-            if (period === 'weekly') {
-                const { start } = getWeekRange(date);
-                return `W_${start.getFullYear()}_${getWeekNumber(start)}`;
-            }
+            if (period === 'weekly') { const { start } = getWeekRange(date); return `W_${start.getFullYear()}_${getWeekNumber(start)}`; }
             if (period === 'monthly') return `M_${date.getFullYear()}_${date.getMonth() + 1}`;
             if (period === 'yearly') return `Y_${date.getFullYear()}`;
             return '';
         };
-
         const getPeriodLabel = (period, date) => {
             if (period === 'daily') return `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日`;
-            if (period === 'weekly') {
-                const { start, end } = getWeekRange(date);
-                return `${start.getFullYear()}年 第${getWeekNumber(start)}周 (${start.getMonth()+1}.${start.getDate()}-${end.getMonth()+1}.${end.getDate()})`;
-            }
+            if (period === 'weekly') { const { start, end } = getWeekRange(date); return `${start.getFullYear()}年 第${getWeekNumber(start)}周 (${start.getMonth()+1}.${start.getDate()}-${end.getMonth()+1}.${end.getDate()})`; }
             if (period === 'monthly') return `${date.getFullYear()}年 ${date.getMonth()+1}月`;
             if (period === 'yearly') return `${date.getFullYear()}年`;
             return '';
         };
-
         const generateCalendarDates = (baseDate = new Date()) => {
             const { start } = getWeekRange(baseDate);
             const dates = [];
             for (let i = 0; i < 7; i++) {
                 const d = new Date(start);
                 d.setDate(start.getDate() + i);
-                dates.push({
-                    fullDate: generateDateString(d),
-                    dayName: getDayName(d.getDay()),
-                    dateNum: d.getDate(),
-                    obj: d
-                });
+                dates.push({ fullDate: generateDateString(d), dayName: getDayName(d.getDay()), dateNum: d.getDate(), obj: d });
             }
             return dates;
         };
-
         const formatTime = (seconds) => {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
             return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         };
-
         const parseDurationFromTimeStr = (timeStr) => {
             if (!timeStr || typeof timeStr !== 'string') return 30; 
             const matches = timeStr.match(/(\d{1,2})[:：](\d{2})/g);
@@ -149,12 +130,8 @@
             }
             return 30; 
         };
-
         const downloadICS = (tasks, dateStr, title) => {
-            if (!tasks || tasks.length === 0) {
-                alert("没有可导出的任务");
-                return;
-            }
+            if (!tasks || tasks.length === 0) { alert("没有可导出的任务"); return; }
             let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//LifeOS//Task Manager//CN\n";
             tasks.forEach(task => {
                 if (!task.time) return; 
@@ -163,87 +140,23 @@
                 const [sH, sM] = matches[0].split(/[:：]/).map(s => s.padStart(2, '0'));
                 const [eH, eM] = matches[1].split(/[:：]/).map(s => s.padStart(2, '0'));
                 const dateClean = dateStr.replace(/-/g, '');
-                icsContent += "BEGIN:VEVENT\n";
-                icsContent += `SUMMARY:${task.title}\n`;
-                icsContent += `DTSTART:${dateClean}T${sH}${sM}00\n`;
-                icsContent += `DTEND:${dateClean}T${eH}${eM}00\n`;
-                icsContent += `DESCRIPTION:${task.note || ''}\n`;
-                icsContent += "END:VEVENT\n";
+                icsContent += `BEGIN:VEVENT\nSUMMARY:${task.title}\nDTSTART:${dateClean}T${sH}${sM}00\nDTEND:${dateClean}T${eH}${eM}00\nDESCRIPTION:${task.note || ''}\nEND:VEVENT\n`;
             });
             icsContent += "END:VCALENDAR";
             const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.setAttribute('download', `${title}_${dateStr}.ics`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const link = document.createElement('a'); link.href = window.URL.createObjectURL(blob); link.setAttribute('download', `${title}_${dateStr}.ics`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
-        // --- 3. Constants & Data ---
-        const DEFAULT_QUOTE = "星光不问赶路人，时光不负有心人。";
-        const GROWTH_QUOTES = [
-            "每一次相遇，都可以用5天时间慢慢认识对方。", 
-            "星光不问赶路人，时光不负有心人。",
-            "不是‘我不行’，而是‘我暂时还不行’。",
-            "拥抱挑战，那是成长的信号。",
-            "天赋决定下限，努力决定上限。",
-            "允许自己休息，但别忘了重新出发。",
-            "今天比昨天进步一点点，就是胜利。",
-            "把困难当作打怪升级，经验值正在疯涨。",
-            "专注当下，未来自会呈现。"
-        ];
-
-        // 初始板块 - 今日日程
-        const INITIAL_SECTIONS = [
-            { id: 'main', title: '今日日程', icon: 'ListTodo', color: 'blue' }
-        ];
-        
+        // --- Constants ---
+        const GROWTH_QUOTES = ["每一次相遇，都可以用5天时间慢慢认识对方。", "星光不问赶路人，时光不负有心人。", "不是‘我不行’，而是‘我暂时还不行’。", "拥抱挑战，那是成长的信号。", "天赋决定下限，努力决定上限。", "允许自己休息，但别忘了重新出发。", "今天比昨天进步一点点，就是胜利。", "把困难当作打怪升级，经验值正在疯涨。", "专注当下，未来自会呈现。"];
+        const INITIAL_SECTIONS = [{ id: 'main', title: '今日日程', icon: 'ListTodo', color: 'blue' }];
         const TODAY_STR = generateDateString(new Date());
-        
-        // 初始数据
-        const INITIAL_TASKS_BY_DATE = {
-            [TODAY_STR]: {
-                main: [
-                    { id: 1, time: '08:00-08:30', title: '晨间习惯 (喝水/拉伸)', completed: false, important: true, urgent: true, tag: '生活', note: '' },
-                    { id: 3, time: '14:00-16:00', title: '核心任务处理', completed: false, important: true, urgent: false, tag: '工作', note: '' },
-                    { id: 5, time: '20:00-21:00', title: '复盘与明日计划', completed: false, important: true, urgent: true, tag: '生活', note: '' }
-                ],
-                fragmentary: []
-            }
-        };
+        const INITIAL_TASKS_BY_DATE = { [TODAY_STR]: { main: [{ id: 1, time: '08:00-08:30', title: '晨间习惯 (喝水/拉伸)', completed: false, important: true, urgent: true, tag: '生活', note: '' }, { id: 3, time: '14:00-16:00', title: '核心任务处理', completed: false, important: true, urgent: false, tag: '工作', note: '' }, { id: 5, time: '20:00-21:00', title: '复盘与明日计划', completed: false, important: true, urgent: true, tag: '生活', note: '' }], fragmentary: [] } };
         const ICON_MAP = { Sun, Coffee, Moon, Zap, Briefcase, BookOpen, Dumbbell, Music, ListTodo };
-        const PALETTE = {
-            white: { label: '纯净白', bg: 'bg-white', text: 'text-slate-800' },
-            gray: { label: '极简灰', bg: 'bg-slate-50', text: 'text-slate-800' },
-            rose: { label: '玫瑰', bg: 'bg-rose-50', text: 'text-rose-900' },
-            butter: { label: '黄油', bg: 'bg-amber-50', text: 'text-amber-900' },
-            latte: { label: '拿铁', bg: 'bg-stone-50', text: 'text-stone-800' },
-            elf: { label: '精灵', bg: 'bg-lime-50', text: 'text-lime-900' },
-            ocean: { label: '海盐', bg: 'bg-sky-50', text: 'text-sky-900' },
-            taro: { label: '香芋', bg: 'bg-purple-50', text: 'text-purple-900' },
-            morandi: { label: '莫兰迪', bg: 'bg-slate-100', text: 'text-slate-800' },
-            wheat: { label: '小麦', bg: 'bg-yellow-50', text: 'text-yellow-900' },
-            mint: { label: '薄荷', bg: 'bg-green-50', text: 'text-green-900' },
-        };
-        const COLOR_THEMES = {
-            orange: { label: '活力橙', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', icon: 'text-orange-500', preview: 'bg-orange-400', cardBg: 'bg-orange-50' },
-            yellow: { label: '明亮黄', bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-200', icon: 'text-yellow-500', preview: 'bg-yellow-400', cardBg: 'bg-yellow-50' },
-            indigo: { label: '深邃靛', bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200', icon: 'text-indigo-500', preview: 'bg-indigo-400', cardBg: 'bg-indigo-50' },
-            blue: { label: '天空蓝', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', icon: 'text-blue-500', preview: 'bg-blue-400', cardBg: 'bg-blue-50' },
-            green: { label: '自然绿', bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200', icon: 'text-green-500', preview: 'bg-green-400', cardBg: 'bg-green-50' },
-            purple: { label: '神秘紫', bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', icon: 'text-purple-500', preview: 'bg-purple-400', cardBg: 'bg-purple-50' },
-            red: { label: '热情红', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', icon: 'text-red-500', preview: 'bg-red-400', cardBg: 'bg-red-50' },
-            rose: { label: '玫瑰', bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', icon: 'text-rose-500', preview: 'bg-rose-400', cardBg: 'bg-rose-50' },
-            butter: { label: '黄油', bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', icon: 'text-amber-500', preview: 'bg-amber-400', cardBg: 'bg-amber-50' },
-            latte: { label: '拿铁', bg: 'bg-stone-50', text: 'text-stone-600', border: 'border-stone-200', icon: 'text-stone-500', preview: 'bg-stone-400', cardBg: 'bg-stone-50' },
-            elf: { label: '精灵', bg: 'bg-lime-50', text: 'text-lime-600', border: 'border-lime-200', icon: 'text-lime-500', preview: 'bg-lime-400', cardBg: 'bg-lime-50' },
-            ocean: { label: '海盐', bg: 'bg-sky-50', text: 'text-sky-600', border: 'border-sky-200', icon: 'text-sky-500', preview: 'bg-sky-400', cardBg: 'bg-sky-50' },
-            taro: { label: '香芋', bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', border: 'border-fuchsia-200', icon: 'text-fuchsia-500', preview: 'bg-fuchsia-400', cardBg: 'bg-fuchsia-50' },
-            morandi: { label: '莫兰迪', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300', icon: 'text-slate-500', preview: 'bg-slate-400', cardBg: 'bg-slate-100' },
-        };
+        const PALETTE = { white: { label: '纯净白', bg: 'bg-white', text: 'text-slate-800' }, gray: { label: '极简灰', bg: 'bg-slate-50', text: 'text-slate-800' }, rose: { label: '玫瑰', bg: 'bg-rose-50', text: 'text-rose-900' }, butter: { label: '黄油', bg: 'bg-amber-50', text: 'text-amber-900' }, latte: { label: '拿铁', bg: 'bg-stone-50', text: 'text-stone-800' }, elf: { label: '精灵', bg: 'bg-lime-50', text: 'text-lime-900' }, ocean: { label: '海盐', bg: 'bg-sky-50', text: 'text-sky-900' }, taro: { label: '香芋', bg: 'bg-purple-50', text: 'text-purple-900' }, morandi: { label: '莫兰迪', bg: 'bg-slate-100', text: 'text-slate-800' }, wheat: { label: '小麦', bg: 'bg-yellow-50', text: 'text-yellow-900' }, mint: { label: '薄荷', bg: 'bg-green-50', text: 'text-green-900' }, };
+        const COLOR_THEMES = { orange: { label: '活力橙', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', icon: 'text-orange-500', preview: 'bg-orange-400', cardBg: 'bg-orange-50' }, yellow: { label: '明亮黄', bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-200', icon: 'text-yellow-500', preview: 'bg-yellow-400', cardBg: 'bg-yellow-50' }, indigo: { label: '深邃靛', bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200', icon: 'text-indigo-500', preview: 'bg-indigo-400', cardBg: 'bg-indigo-50' }, blue: { label: '天空蓝', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', icon: 'text-blue-500', preview: 'bg-blue-400', cardBg: 'bg-blue-50' }, green: { label: '自然绿', bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200', icon: 'text-green-500', preview: 'bg-green-400', cardBg: 'bg-green-50' }, purple: { label: '神秘紫', bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', icon: 'text-purple-500', preview: 'bg-purple-400', cardBg: 'bg-purple-50' }, red: { label: '热情红', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', icon: 'text-red-500', preview: 'bg-red-400', cardBg: 'bg-red-50' }, rose: { label: '玫瑰', bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', icon: 'text-rose-500', preview: 'bg-rose-400', cardBg: 'bg-rose-50' }, butter: { label: '黄油', bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', icon: 'text-amber-500', preview: 'bg-amber-400', cardBg: 'bg-amber-50' }, latte: { label: '拿铁', bg: 'bg-stone-50', text: 'text-stone-600', border: 'border-stone-200', icon: 'text-stone-500', preview: 'bg-stone-400', cardBg: 'bg-stone-50' }, elf: { label: '精灵', bg: 'bg-lime-50', text: 'text-lime-600', border: 'border-lime-200', icon: 'text-lime-500', preview: 'bg-lime-400', cardBg: 'bg-lime-50' }, ocean: { label: '海盐', bg: 'bg-sky-50', text: 'text-sky-600', border: 'border-sky-200', icon: 'text-sky-500', preview: 'bg-sky-400', cardBg: 'bg-sky-50' }, taro: { label: '香芋', bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', border: 'border-fuchsia-200', icon: 'text-fuchsia-500', preview: 'bg-fuchsia-400', cardBg: 'bg-fuchsia-50' }, morandi: { label: '莫兰迪', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-300', icon: 'text-slate-500', preview: 'bg-slate-400', cardBg: 'bg-slate-100' }, };
 
-        // --- 4. Sub-Components ---
+        // --- Components ---
         const Modal = ({ isOpen, onClose, title, children, fullScreen = false }) => {
             if (!isOpen) return null;
             return (
@@ -279,7 +192,7 @@
         const CircularProgress = ({ percentage, label, subLabel, colorClass, trackClass, onClick }) => {const radius = 18; const circumference = 2 * Math.PI * radius; const strokeDashoffset = circumference - (percentage / 100) * circumference; return (<div className="flex flex-col items-center justify-center group cursor-pointer relative z-10" onClick={onClick} style={{ pointerEvents: 'auto' }}><div className="relative w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105"><svg className="w-full h-full transform -rotate-90"><circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" className={trackClass} /><circle cx="24" cy="24" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" className={colorClass} /></svg><span className="absolute text-[10px] font-bold text-gray-600">{percentage}%</span></div><div className="mt-1 text-center"><div className="text-[10px] text-gray-400 group-hover:text-blue-500 transition-colors">{label}</div><div className="text-xs font-bold text-gray-800">{subLabel}</div></div></div>);};
         const AdvancedPieChart = ({ data, totalMins }) => {if (!data || data.length === 0) return null; let cumulativePercent = 0; const getCoordinates = (percent, radius = 1) => { const rad = 2 * Math.PI * (percent - 0.25); const x = Math.cos(rad) * radius; const y = Math.sin(rad) * radius; return [x, y]; }; const formatDuration = (mins) => { const h = Math.floor(mins / 60); const m = mins % 60; if (h > 0 && m > 0) return `${h}小时${m}分`; if (h > 0) return `${h}小时`; return `${m}分`; }; return (<div className="relative w-full aspect-square max-w-sm mx-auto my-4"><svg viewBox="-2 -2 4 4" className="w-full h-full overflow-visible">{data.map((item, index) => { const percent = item.value / totalMins; const [startX, startY] = getCoordinates(cumulativePercent); const midPercent = cumulativePercent + percent / 2; cumulativePercent += percent; const [endX, endY] = getCoordinates(cumulativePercent); const largeArcFlag = percent > 0.5 ? 1 : 0; const pathData = `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`; const [midX, midY] = getCoordinates(midPercent); const isRight = midX > 0; const elbowX = midX * 1.15; const elbowY = midY * 1.15; const textStartX = isRight ? elbowX + 0.2 : elbowX - 0.2; return (<g key={index}><path d={pathData} fill={item.color} stroke="white" strokeWidth="0.02" className="hover:opacity-90 transition-opacity cursor-pointer" />{percent > 0.03 && (<React.Fragment><polyline points={`${midX},${midY} ${elbowX},${elbowY} ${textStartX},${elbowY}`} fill="none" stroke="#9ca3af" strokeWidth="0.015" /><text x={isRight ? textStartX + 0.05 : textStartX - 0.05} y={elbowY - 0.06} fill="#4b5563" fontSize="0.16" textAnchor={isRight ? 'start' : 'end'} alignmentBaseline="baseline" className="font-bold">{item.tag}</text><text x={isRight ? textStartX + 0.05 : textStartX - 0.05} y={elbowY + 0.14} fill="#6b7280" fontSize="0.12" textAnchor={isRight ? 'start' : 'end'} alignmentBaseline="baseline">{formatDuration(item.value)}</text></React.Fragment>)}</g>);})}</svg></div>);};
         
-        // 优化后的统计卡片：极度扁平化，去除胶囊背景，字号微调
+        // 优化后的统计卡片：极度扁平化 - 极致压缩版
         const StatCard = ({ number, title, subText, colorTheme }) => {
             const themes = {
                 red: { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100' },
@@ -288,17 +201,18 @@
                 green: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
             };
             const theme = themes[colorTheme] || themes.blue;
-            
             return (
-                <div className={`${theme.bg} rounded-xl p-1.5 flex flex-col items-center justify-center border ${theme.border} shadow-sm h-full`}>
-                    <span className="text-[9px] font-bold text-gray-500 leading-none scale-90 origin-bottom">{title}</span>
-                    <span className={`text-lg font-black ${theme.text} leading-none my-0.5`}>{number}</span>
-                    <span className={`text-[9px] font-bold ${theme.text} opacity-80 leading-none scale-90 origin-top`}>{subText}</span>
+                <div className={`${theme.bg} rounded-lg p-1 flex flex-col items-center justify-center border ${theme.border} h-full`}>
+                    <span className="text-[9px] font-bold text-gray-500 leading-none scale-75 origin-bottom">{title}</span>
+                    <span className={`text-base font-black ${theme.text} leading-none my-0.5`}>{number}</span>
+                    <span className={`text-[9px] font-bold ${theme.text} opacity-80 leading-none scale-75 origin-top`}>{subText}</span>
                 </div>
             );
         };
 
-        const TaskCard = ({ task, onToggle, onEdit, onDelete, onNote, onRemind, cardStyle, sectionColor }) => {
+        const TaskCard = ({ task, onToggle, onEdit, onDelete, onNote, onRemind, onStart, cardStyle, sectionColor }) => {
+            const [showMenu, setShowMenu] = useState(false); // 控制左上角菜单显示
+            
             const getMatrixTag = () => {
                 if (task.important && task.urgent) return { text: '重要紧急', color: 'indigo' };
                 if (task.important && !task.urgent) return { text: '重要不急', color: 'blue' };
@@ -313,6 +227,35 @@
             
             return (
                 <div className={`p-2.5 rounded-xl shadow-sm border transition-all duration-300 group mb-2 relative cursor-pointer flex items-start gap-3 ${bgClass}`} onClick={() => onToggle(task.id)}>
+                    
+                    {/* [新功能] 左上角隐形菜单触发器 - 绝对定位 */}
+                    <div className="absolute top-1 left-1 z-30">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                            className={`p-1.5 rounded-full transition-all ${showMenu ? 'bg-blue-50 text-blue-600 opacity-100' : 'text-gray-200 hover:text-gray-400 opacity-0 group-hover:opacity-100'}`}
+                            title="更多操作"
+                        >
+                            <MoreHorizontal className="w-3.5 h-3.5" />
+                        </button>
+                        
+                        {/* 悬浮菜单 */}
+                        {showMenu && (
+                            <div className="absolute top-full left-0 mt-1 bg-white shadow-xl border border-gray-100 rounded-lg p-1 flex flex-col gap-1 min-w-[80px] animate-in fade-in zoom-in duration-150 origin-top-left z-40">
+                                <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onEdit(task); }} className="flex items-center gap-2 px-2 py-1.5 hover:bg-blue-50 text-blue-600 rounded text-xs font-bold transition w-full text-left">
+                                    <Edit3 className="w-3 h-3"/> 编辑
+                                </button>
+                                <div className="h-px bg-gray-100 w-full"></div>
+                                <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onDelete(task.id); }} className="flex items-center gap-2 px-2 py-1.5 hover:bg-red-50 text-red-500 rounded text-xs font-bold transition w-full text-left">
+                                    <Trash2 className="w-3 h-3"/> 删除
+                                </button>
+                            </div>
+                        )}
+                        
+                        {/* 点击外部关闭菜单的遮罩 (仅当菜单打开时存在) */}
+                        {showMenu && <div className="fixed inset-0 z-20 cursor-default" onClick={(e) => { e.stopPropagation(); setShowMenu(false); }}></div>}
+                    </div>
+
+                    {/* 时间列 */}
                     <div className="flex flex-col items-end justify-center min-w-[4rem] border-r-2 border-gray-100 pr-3 py-1 self-stretch">
                         {task.time ? (
                             <>
@@ -324,12 +267,6 @@
                         )}
                     </div>
 
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 bg-white/90 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-gray-100">
-                        <button onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-md transition" title="编辑任务"><Edit3 className="w-3.5 h-3.5" /></button>
-                        <div className="w-px bg-gray-200 my-1"></div>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(task.id); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition" title="删除任务"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-
                     <div className={`flex-1 transition-opacity duration-300 min-w-0 py-0.5 ${task.completed ? 'opacity-40' : 'opacity-100'}`}>
                         <div className="flex items-center gap-2 mb-1.5">
                             <h3 className={`font-bold text-sm truncate transition-colors duration-300 ${task.completed ? 'line-through text-gray-300 decoration-gray-300' : 'text-gray-800'}`}>
@@ -337,12 +274,17 @@
                                 {task.recurring && <RotateCcw className="inline-block w-3 h-3 ml-2 text-blue-400" />}
                             </h3>
                         </div>
-                        
                         <div className="flex flex-wrap items-center gap-2">
                             {userTag && <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${task.completed ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-600'}`}>{String(userTag)}</span>}
                             <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${task.completed ? 'bg-gray-100 text-gray-400' : tagColors[matrixTag.color]}`}>{matrixTag.text}</span>
-                            
                             <div className={`flex items-center gap-2 ${task.completed ? 'hidden' : 'flex'}`}>
+                                {!task.actualStart ? (
+                                    <button className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded hover:bg-green-50 hover:text-green-600 text-gray-400 transition-all font-bold group/play" onClick={(e) => { e.stopPropagation(); onStart && onStart(task); }}>
+                                        <Play className="w-3 h-3 group-hover/play:fill-green-600" /><span>执行</span>
+                                    </button>
+                                ) : (
+                                    <span className="text-[10px] text-green-500 font-bold flex items-center gap-0.5 bg-green-50 px-1.5 py-0.5 rounded animate-pulse"><Zap className="w-3 h-3 fill-green-500"/> 进行中</span>
+                                )}
                                 <button className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded hover:bg-pink-50 hover:text-pink-600 text-gray-400 transition-all" onClick={(e) => { e.stopPropagation(); onNote(task); }}>
                                     <PenLine className="w-3 h-3" /><span>备注</span>
                                 </button>
@@ -351,10 +293,9 @@
                                 </button>
                             </div>
                         </div>
-
                         {task.note && (<div className={`mt-2 px-2 py-1.5 rounded-lg text-xs flex gap-2 items-start border transition-colors ${task.completed ? 'bg-gray-50 border-gray-100 text-gray-300' : 'bg-yellow-50 border-yellow-100/50 text-gray-600'}`}><StickyNote className={`w-3 h-3 mt-0.5 flex-shrink-0 ${task.completed ? 'text-gray-300' : 'text-yellow-400'}`} /><span className="line-clamp-1">{String(task.note)}</span></div>)}
                     </div>
-
+                    
                     <div className="flex-shrink-0 ml-1 self-center">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${task.completed ? 'bg-green-400 shadow-sm scale-110' : 'border-2 border-gray-200 hover:border-indigo-300 bg-white'}`}>
                             {task.completed && <Check className="w-4 h-4 text-white stroke-[3]" />}
@@ -369,146 +310,35 @@
             const data = reviews[reviewId] || { gratitude: '', facts: '', insight: '', adjustment: '' };
             const [gratitudeSaved, setGratitudeSaved] = useState(false);
             const [threeLineSaved, setThreeLineSaved] = useState(false);
-            
-            const gratitudeRef = useRef(null);
-            const factsRef = useRef(null);
-            const insightRef = useRef(null);
-            const adjustmentRef = useRef(null);
-
-            const adjustHeight = (ref) => {
-                if (ref.current) {
-                    ref.current.style.height = 'auto';
-                    ref.current.style.height = ref.current.scrollHeight + 'px';
-                }
-            };
-
+            const gratitudeRef = useRef(null); const factsRef = useRef(null); const insightRef = useRef(null); const adjustmentRef = useRef(null);
+            const adjustHeight = (ref) => { if (ref.current) { ref.current.style.height = 'auto'; ref.current.style.height = ref.current.scrollHeight + 'px'; } };
             useEffect(() => { adjustHeight(gratitudeRef); }, [data.gratitude]);
-            useEffect(() => { 
-                adjustHeight(factsRef);
-                adjustHeight(insightRef);
-                adjustHeight(adjustmentRef);
-            }, [data.facts, data.insight, data.adjustment]);
-
-            const updateReview = (field, value) => {
-                setReviews(prev => ({ ...prev, [reviewId]: { ...(prev[reviewId] || {}), [field]: value } }));
-                if (field === 'gratitude') setGratitudeSaved(false);
-                else setThreeLineSaved(false);
-            };
-
-            const handleSaveGratitude = () => {
-                setGratitudeSaved(true);
-                setTimeout(() => setGratitudeSaved(false), 2000);
-            };
-
-            const handleSaveThreeLine = () => {
-                setThreeLineSaved(true);
-                setTimeout(() => setThreeLineSaved(false), 2000);
-            };
-
-            return (
-                <div className="space-y-6 p-4">
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-pink-50">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2"><Heart className="w-5 h-5 text-pink-400 fill-pink-400" /><h4 className="font-bold text-gray-800">感恩笔记</h4></div>
-                            <button onClick={handleSaveGratitude} className={`text-xs px-3 py-1.5 rounded-full transition-all font-bold ${gratitudeSaved ? 'bg-green-100 text-green-600' : 'bg-pink-50 text-pink-600 hover:bg-pink-100'}`}>
-                                {gratitudeSaved ? <span className="flex items-center gap-1"><Check className="w-3 h-3"/> 已保存</span> : '保存'}
-                            </button>
-                        </div>
-                        <textarea 
-                            ref={gratitudeRef}
-                            className="w-full min-h-[96px] bg-pink-50/30 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-pink-200 resize-none placeholder:text-gray-300 overflow-hidden transition-all" 
-                            placeholder="记录今天值得感激的小确幸..." 
-                            value={String(data.gratitude || '')} 
-                            onChange={(e) => updateReview('gratitude', e.target.value)} 
-                        />
-                    </div>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-blue-50">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-orange-400 fill-orange-400" /><h4 className="font-bold text-gray-800">3行极简复盘</h4></div>
-                            <button onClick={handleSaveThreeLine} className={`text-xs px-3 py-1.5 rounded-full transition-all font-bold ${threeLineSaved ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
-                                {threeLineSaved ? <span className="flex items-center gap-1"><Check className="w-3 h-3"/> 已保存</span> : '保存'}
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-xs font-bold text-blue-500 mb-1 block flex items-center gap-1"><LayoutGrid className="w-3 h-3"/> 事实</label>
-                                <textarea ref={factsRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-blue-200 transition-all resize-none overflow-hidden" placeholder="完成..." value={String(data.facts || '')} onChange={(e) => updateReview('facts', e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-pink-500 mb-1 block flex items-center gap-1"><Zap className="w-3 h-3"/> 洞察</label>
-                                <textarea ref={insightRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-pink-200 transition-all resize-none overflow-hidden" placeholder="心得..." value={String(data.insight || '')} onChange={(e) => updateReview('insight', e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold text-green-500 mb-1 block flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> 调整</label>
-                                <textarea ref={adjustmentRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-green-200 transition-all resize-none overflow-hidden" placeholder="下一步..." value={String(data.adjustment || '')} onChange={(e) => updateReview('adjustment', e.target.value)} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
+            useEffect(() => { adjustHeight(factsRef); adjustHeight(insightRef); adjustHeight(adjustmentRef); }, [data.facts, data.insight, data.adjustment]);
+            const updateReview = (field, value) => { setReviews(prev => ({ ...prev, [reviewId]: { ...(prev[reviewId] || {}), [field]: value } })); if (field === 'gratitude') setGratitudeSaved(false); else setThreeLineSaved(false); };
+            const handleSaveGratitude = () => { setGratitudeSaved(true); setTimeout(() => setGratitudeSaved(false), 2000); };
+            const handleSaveThreeLine = () => { setThreeLineSaved(true); setTimeout(() => setThreeLineSaved(false), 2000); };
+            return (<div className="space-y-6 p-4"><div className="bg-white p-4 rounded-xl shadow-sm border border-pink-50"><div className="flex items-center justify-between mb-3"><div className="flex items-center gap-2"><Heart className="w-5 h-5 text-pink-400 fill-pink-400" /><h4 className="font-bold text-gray-800">感恩笔记</h4></div><button onClick={handleSaveGratitude} className={`text-xs px-3 py-1.5 rounded-full transition-all font-bold ${gratitudeSaved ? 'bg-green-100 text-green-600' : 'bg-pink-50 text-pink-600 hover:bg-pink-100'}`}>{gratitudeSaved ? <span className="flex items-center gap-1"><Check className="w-3 h-3"/> 已保存</span> : '保存'}</button></div><textarea ref={gratitudeRef} className="w-full min-h-[96px] bg-pink-50/30 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-pink-200 resize-none placeholder:text-gray-300 overflow-hidden transition-all" placeholder="记录今天值得感激的小确幸..." value={String(data.gratitude || '')} onChange={(e) => updateReview('gratitude', e.target.value)} /></div><div className="bg-white p-4 rounded-xl shadow-sm border border-blue-50"><div className="flex items-center justify-between mb-3"><div className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-orange-400 fill-orange-400" /><h4 className="font-bold text-gray-800">3行极简复盘</h4></div><button onClick={handleSaveThreeLine} className={`text-xs px-3 py-1.5 rounded-full transition-all font-bold ${threeLineSaved ? 'bg-green-100 text-green-600' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>{threeLineSaved ? <span className="flex items-center gap-1"><Check className="w-3 h-3"/> 已保存</span> : '保存'}</button></div><div className="space-y-3"><div><label className="text-xs font-bold text-blue-500 mb-1 block flex items-center gap-1"><LayoutGrid className="w-3 h-3"/> 事实</label><textarea ref={factsRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-blue-200 transition-all resize-none overflow-hidden" placeholder="完成..." value={String(data.facts || '')} onChange={(e) => updateReview('facts', e.target.value)} /></div><div><label className="text-xs font-bold text-pink-500 mb-1 block flex items-center gap-1"><Zap className="w-3 h-3"/> 洞察</label><textarea ref={insightRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-pink-200 transition-all resize-none overflow-hidden" placeholder="心得..." value={String(data.insight || '')} onChange={(e) => updateReview('insight', e.target.value)} /></div><div><label className="text-xs font-bold text-green-500 mb-1 block flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> 调整</label><textarea ref={adjustmentRef} rows={1} className="w-full bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none border-0 focus:ring-1 focus:ring-green-200 transition-all resize-none overflow-hidden" placeholder="下一步..." value={String(data.adjustment || '')} onChange={(e) => updateReview('adjustment', e.target.value)} /></div></div></div></div>);
         };
 
         const PeriodReviewContent = ({ period, reviewDate, reviews, setReviews, tasksByDate, sections }) => {
             const reviewId = getReviewId(period, reviewDate);
             const data = reviews[reviewId] || {};
             const goals = Array.isArray(data.goals) ? data.goals : [];
-            
             const [summarySaved, setSummarySaved] = useState(false);
             const [kptSaved, setKptSaved] = useState({ keep: false, problem: false, try: false });
             const [graiSaved, setGraiSaved] = useState({ goal: false, result: false, analysis: false, insight: false });
             const [pdcaSaved, setPdcaSaved] = useState({ plan: false, do: false, check: false, action: false });
-
-            const summaryRef = useRef(null);
-            const keepRef = useRef(null);
-            const problemRef = useRef(null);
-            const tryRef = useRef(null);
-            const goalRef = useRef(null);
-            const resultRef = useRef(null);
-            const analysisRef = useRef(null);
-            const insightRef = useRef(null);
-            const planRef = useRef(null);
-            const doRef = useRef(null);
-            const checkRef = useRef(null);
-            const actionRef = useRef(null);
-
-            const adjustHeight = (ref) => {
-                if (ref.current) {
-                    ref.current.style.height = 'auto';
-                    ref.current.style.height = ref.current.scrollHeight + 'px';
-                }
-            };
-
+            const summaryRef = useRef(null); const keepRef = useRef(null); const problemRef = useRef(null); const tryRef = useRef(null); const goalRef = useRef(null); const resultRef = useRef(null); const analysisRef = useRef(null); const insightRef = useRef(null); const planRef = useRef(null); const doRef = useRef(null); const checkRef = useRef(null); const actionRef = useRef(null);
+            const adjustHeight = (ref) => { if (ref.current) { ref.current.style.height = 'auto'; ref.current.style.height = ref.current.scrollHeight + 'px'; } };
             useEffect(() => { adjustHeight(summaryRef); }, [data.summary]);
             useEffect(() => { if(period === 'yearly') { adjustHeight(keepRef); adjustHeight(problemRef); adjustHeight(tryRef); } }, [data.kpt_keep, data.kpt_problem, data.kpt_try, period]);
             useEffect(() => { if(period === 'monthly') { adjustHeight(goalRef); adjustHeight(resultRef); adjustHeight(analysisRef); adjustHeight(insightRef); } }, [data.grai_goal, data.grai_result, data.grai_analysis, data.grai_insight, period]);
             useEffect(() => { if(period === 'weekly') { adjustHeight(planRef); adjustHeight(doRef); adjustHeight(checkRef); adjustHeight(actionRef); } }, [data.pdca_plan, data.pdca_do, data.pdca_check, data.pdca_action, period]);
-            
-            const statsData = useMemo(() => {
-                let targetDates = [];
-                const y = reviewDate.getFullYear();
-                const m = reviewDate.getMonth();
-                if (period === 'weekly') { const { start } = getWeekRange(reviewDate); for(let i=0; i<7; i++) { const temp = new Date(start); temp.setDate(start.getDate() + i); targetDates.push(generateDateString(temp)); } }
-                else if (period === 'monthly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy, dm] = dateStr.split('-').map(Number); if (dy === y && dm === m + 1) targetDates.push(dateStr); }); }
-                else if (period === 'yearly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy] = dateStr.split('-').map(Number); if (dy === y) targetDates.push(dateStr); }); }
-                let tagMap = {}; let totalMins = 0; let activeDays = new Set(); let completedCount = 0;
-                targetDates.forEach(dateStr => { const dayTasks = tasksByDate[dateStr]; if (!dayTasks) return; let hasCompleted = false; [...sections.map(s => s.id), 'fragmentary'].forEach(sec => { (dayTasks[sec] || []).forEach(task => { if (task.completed) { hasCompleted = true; completedCount++; const tag = task.tag || '未分类'; const mins = task.time ? parseDurationFromTimeStr(task.time) : 30; tagMap[tag] = (tagMap[tag] || 0) + mins; totalMins += mins; } }); }); if (hasCompleted) activeDays.add(dateStr); });
-                const colors = ['#fca5a5', '#93c5fd', '#6ee7b7', '#fcd34d', '#c4b5fd', '#f9a8d4', '#818cf8', '#34d399', '#fbbf24', '#f87171'];
-                const chartData = Object.keys(tagMap).map((k, i) => ({ tag: k, value: tagMap[k], color: colors[i % colors.length] })).sort((a,b) => b.value - a.value);
-                return { data: chartData, totalMins, completedCount, activeDays: activeDays.size };
-            }, [period, reviewDate, tasksByDate, sections]);
-
+            const statsData = useMemo(() => { let targetDates = []; const y = reviewDate.getFullYear(); const m = reviewDate.getMonth(); if (period === 'weekly') { const { start } = getWeekRange(reviewDate); for(let i=0; i<7; i++) { const temp = new Date(start); temp.setDate(start.getDate() + i); targetDates.push(generateDateString(temp)); } } else if (period === 'monthly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy, dm] = dateStr.split('-').map(Number); if (dy === y && dm === m + 1) targetDates.push(dateStr); }); } else if (period === 'yearly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy] = dateStr.split('-').map(Number); if (dy === y) targetDates.push(dateStr); }); } let tagMap = {}; let totalMins = 0; let activeDays = new Set(); let completedCount = 0; targetDates.forEach(dateStr => { const dayTasks = tasksByDate[dateStr]; if (!dayTasks) return; let hasCompleted = false; [...sections.map(s => s.id), 'fragmentary'].forEach(sec => { (dayTasks[sec] || []).forEach(task => { if (task.completed) { hasCompleted = true; completedCount++; const tag = task.tag || '未分类'; const mins = task.time ? parseDurationFromTimeStr(task.time) : 30; tagMap[tag] = (tagMap[tag] || 0) + mins; totalMins += mins; } }); }); if (hasCompleted) activeDays.add(dateStr); }); const colors = ['#fca5a5', '#93c5fd', '#6ee7b7', '#fcd34d', '#c4b5fd', '#f9a8d4', '#818cf8', '#34d399', '#fbbf24', '#f87171']; const chartData = Object.keys(tagMap).map((k, i) => ({ tag: k, value: tagMap[k], color: colors[i % colors.length] })).sort((a,b) => b.value - a.value); return { data: chartData, totalMins, completedCount, activeDays: activeDays.size }; }, [period, reviewDate, tasksByDate, sections]);
             const [newGoal, setNewGoal] = useState('');
-            const updateReview = (field, value) => {
-                setReviews(prev => ({ ...prev, [reviewId]: { ...(prev[reviewId] || {}), [field]: value } }));
-                if (field === 'summary') setSummarySaved(false);
-                if (field.startsWith('kpt_')) setKptSaved(prev => ({ ...prev, [field.split('_')[1]]: false }));
-                if (field.startsWith('grai_')) setGraiSaved(prev => ({ ...prev, [field.split('_')[1]]: false }));
-                if (field.startsWith('pdca_')) setPdcaSaved(prev => ({ ...prev, [field.split('_')[1]]: false }));
-            };
-            
+            const updateReview = (field, value) => { setReviews(prev => ({ ...prev, [reviewId]: { ...(prev[reviewId] || {}), [field]: value } })); if (field === 'summary') setSummarySaved(false); if (field.startsWith('kpt_')) setKptSaved(prev => ({ ...prev, [field.split('_')[1]]: false })); if (field.startsWith('grai_')) setGraiSaved(prev => ({ ...prev, [field.split('_')[1]]: false })); if (field.startsWith('pdca_')) setPdcaSaved(prev => ({ ...prev, [field.split('_')[1]]: false })); };
             const addGoal = () => { if (!newGoal.trim()) return; const newGoalObj = { id: Date.now(), text: newGoal, completed: false }; updateReview('goals', [...goals, newGoalObj]); setNewGoal(''); };
             const toggleGoal = (goalId) => { const newGoals = goals.map(g => g.id === goalId ? { ...g, completed: !g.completed } : g); updateReview('goals', newGoals); };
-            
             const handleSaveSummary = () => { setSummarySaved(true); setTimeout(() => setSummarySaved(false), 2000); };
             const handleSaveKpt = (type) => { setKptSaved(prev => ({ ...prev, [type]: true })); setTimeout(() => setKptSaved(prev => ({ ...prev, [type]: false })), 2000); };
             const handleSaveGrai = (type) => { setGraiSaved(prev => ({ ...prev, [type]: true })); setTimeout(() => setGraiSaved(prev => ({ ...prev, [type]: false })), 2000); };
@@ -520,13 +350,11 @@
                         <div className="flex items-center gap-2 mb-2"><PieChart className="w-5 h-5 text-indigo-500" /><h4 className="font-bold text-gray-800 text-sm">时间分配与数据回顾</h4></div>
                         {statsData.data.length > 0 ? (<div className="flex flex-col items-center"><AdvancedPieChart data={statsData.data} totalMins={statsData.totalMins} /><div className="mt-4 text-center w-full pt-4 border-t border-gray-100"><p className="text-gray-800 font-bold text-sm mb-1">总计 {Math.floor(statsData.totalMins / 60)} 小时 {statsData.totalMins % 60} 分钟</p><p className="text-gray-400 text-xs mt-1">打卡完成 {statsData.completedCount} 个任务 · 周期内活跃 {statsData.activeDays} 天</p></div></div>) : (<div className="text-center py-6 text-gray-400 text-xs">该周期暂无已完成的任务数据</div>)}
                     </div>
-
                      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                         <div className="flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-red-500" /><h4 className="font-bold text-gray-800 text-sm">核心目标</h4></div>
                         <div className="space-y-2 mb-3">{goals.map(goal => (<div key={goal.id} className="flex items-center gap-2 group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"><button onClick={() => toggleGoal(goal.id)} className={`flex-shrink-0 transition-colors ${goal.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}>{goal.completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}</button><span className={`flex-1 text-sm ${goal.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{String(goal.text)}</span></div>))}</div>
                         <div className="flex gap-2 w-full mt-2"><input className="flex-1 bg-white border border-gray-200 rounded px-3 py-1.5 text-sm outline-none" placeholder="添加新目标..." value={newGoal} onChange={(e) => setNewGoal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addGoal()} /><button onClick={addGoal} className="bg-[#1E293B] text-white px-4 py-1.5 rounded text-xs font-bold">添加</button></div>
                     </div>
-
                     {period === 'yearly' ? (
                         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                             <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2"><TrendingUp className="w-5 h-5 text-purple-600" /><h4 className="font-black text-gray-800 text-lg">KPT 年复盘法</h4></div>
@@ -882,7 +710,7 @@
                 else if (statsPeriod === 'monthly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy, dm] = dateStr.split('-').map(Number); if (dy === y && dm === m + 1) targetDates.push(dateStr); }); }
                 else if (statsPeriod === 'yearly') { Object.keys(tasksByDate).forEach(dateStr => { const [dy] = dateStr.split('-').map(Number); if (dy === y) targetDates.push(dateStr); }); }
                 let tagMap = {}; let totalMins = 0; let activeDays = new Set(); let completedCount = 0;
-                targetDates.forEach(dateStr => { const dayTasks = tasksByDate[dateStr]; if (!dayTasks) return; let hasCompleted = false; [...sections.map(s => s.id), 'fragmentary'].forEach(sec => { (dayTasks[sec] || []).forEach(task => { if (task.completed) { hasCompleted = true; completedCount++; const tag = task.tag || '未分类'; const mins = task.time ? parseDurationFromTimeStr(task.time) : 30; tagMap[tag] = (tagMap[tag] || 0) + mins; totalMins += mins; } }); }); if (hasCompleted) activeDays.add(dateStr); });
+                targetDates.forEach(dateStr => { const dayTasks = tasksByDate[dateStr]; if (!dayTasks) return; let hasCompleted = false; [...sections.map(s => s.id), 'fragmentary'].forEach(sec => { (dayTasks[sec] || []).forEach(task => { if (task.completed) { hasCompleted = true; const tag = task.tag || '未分类'; const mins = task.time ? parseDurationFromTimeStr(task.time) : 30; tagMap[tag] = (tagMap[tag] || 0) + mins; totalMins += mins; } }); }); if (hasCompleted) activeDays.add(dateStr); });
                 const colors = ['#fca5a5', '#93c5fd', '#6ee7b7', '#fcd34d', '#c4b5fd', '#f9a8d4', '#818cf8', '#34d399', '#fbbf24', '#f87171'];
                 const data = Object.keys(tagMap).map((k, i) => ({ tag: k, value: tagMap[k], color: colors[i % colors.length] })).sort((a,b) => b.value - a.value);
                 const avgMins = activeDays.size > 0 ? Math.round(totalMins / activeDays.size) : 0;
@@ -921,13 +749,53 @@
                 }); 
             };
             
+            const handleStartTask = (task, sectionId) => {
+                if (task.completed || task.actualStart) return;
+                const newTitle = window.prompt("确认按原计划执行吗？如需更改，请在此输入新任务名。", task.title);
+                if (newTitle !== null) {
+                    setTasksByDate(prev => {
+                        const newMap = { ...prev };
+                        const dateTasks = { ...(newMap[selectedDateStr] || {}) };
+                        const listKey = sectionId === 'fragmentary' ? 'fragmentary' : sectionId;
+                        if (dateTasks[listKey]) {
+                            dateTasks[listKey] = dateTasks[listKey].map(t => {
+                                if (t.id === task.id) {
+                                    const titleChanged = newTitle.trim() && newTitle !== t.title;
+                                    return {
+                                        ...t,
+                                        actualStart: new Date().toISOString(), 
+                                        title: titleChanged ? newTitle : t.title,
+                                        originalTitle: titleChanged ? t.title : (t.originalTitle || '')
+                                    };
+                                }
+                                return t;
+                            });
+                            newMap[selectedDateStr] = dateTasks;
+                        }
+                        return newMap;
+                    });
+                }
+            };
+
             const handleEditTask = (task, sectionId) => { setCurrentTask({ ...task, sectionId }); setTargetSection(sectionId); setEditingPriority({ important: task.important, urgent: task.urgent }); setInputTime(task.time || ''); setRecurrenceType('none'); setIsTaskModalOpen(true); };
             const handleAddTask = (sectionId) => { setCurrentTask(null); setTargetSection(sectionId); setEditingPriority({ important: false, urgent: false }); setInputTime(''); setRecurrenceType('none'); setIsTaskModalOpen(true); };
             const handleOpenNote = (task) => { let s = null; const d = tasksByDate[selectedDateStr] || {}; for (const k of [...sections.map(x => x.id), 'fragmentary']) { if (d[k]?.some(t => t.id === task.id)) { s = k; break; } } setCurrentTask({ ...task, sectionId: s }); setIsNoteModalOpen(true); };
             const saveNote = (e) => { e.preventDefault(); const n = new FormData(e.target).get('note'); setTasksByDate(p => { const ns = { ...p }; const s = currentTask.sectionId; if (ns[selectedDateStr]?.[s]) { ns[selectedDateStr][s] = ns[selectedDateStr][s].map(t => t.id === currentTask.id ? { ...t, note: n } : t); } return ns; }); setIsNoteModalOpen(false); };
             const saveTask = (e) => { 
                 e.preventDefault(); const f = new FormData(e.target); const isNew = !currentTask; const id = currentTask ? currentTask.id : Date.now(); const recurrence = f.get('recurrence'); 
-                const baseTask = { title: f.get('title'), time: inputTime, tag: f.get('tag'), note: currentTask?.note || '', important: editingPriority.important, urgent: editingPriority.urgent, completed: currentTask?.completed || false, recurring: recurrence !== 'none' };
+                const baseTask = { 
+                    title: f.get('title'), 
+                    time: inputTime, 
+                    tag: f.get('tag'), 
+                    note: currentTask?.note || '', 
+                    important: editingPriority.important, 
+                    urgent: editingPriority.urgent, 
+                    completed: currentTask?.completed || false, 
+                    recurring: recurrence !== 'none',
+                    originalTitle: currentTask?.originalTitle || '', 
+                    actualStart: currentTask?.actualStart || '', 
+                    actualEnd: currentTask?.actualEnd || ''
+                };
                 setTasksByDate(prev => { 
                     const newMap = { ...prev };
                     const addToDate = (dateStr, taskToAdd, isFutureSync = false) => { 
@@ -1054,7 +922,7 @@
                             {sections.map(section => (
                                 <div key={section.id}>
                                     <div className="flex justify-between items-center mb-2"><div className="flex items-center gap-2"><React.Fragment>{React.createElement(ICON_MAP[section.icon] || Circle, { className: `w-5 h-5 ${COLOR_THEMES[section.color]?.icon || 'text-gray-400'} fill-current` })}</React.Fragment><h2 className={`font-bold text-lg ${COLOR_THEMES[section.color]?.text || 'text-gray-700'}`}>{section.title}</h2></div><button onClick={() => downloadICS(tasks[section.id], selectedDateStr, section.title)} className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors ${COLOR_THEMES[section.color]?.bg || 'bg-gray-100'} ${COLOR_THEMES[section.color]?.text || 'text-gray-600'} ${COLOR_THEMES[section.color]?.buttonBg || 'hover:bg-gray-200'}`}><Bell className="w-3 h-3" /> 提醒</button></div>
-                                    <div className={`space-y-3 min-h-[50px] p-2.5 rounded-xl border border-dashed ${COLOR_THEMES[section.color]?.border || 'border-gray-200'} ${COLOR_THEMES[section.color]?.bg || 'bg-gray-50'} bg-opacity-30`}>{tasks[section.id]?.length === 0 && <div className="text-center py-4 text-gray-400 text-xs">本日暂无安排</div>}{tasks[section.id]?.map(task => (<TaskCard key={task.id} task={task} onToggle={handleToggleTask} onEdit={(t) => handleEditTask(t, section.id)} onDelete={(id) => handleDeleteTaskDirectly(id, section.id)} onNote={handleOpenNote} onRemind={handleTaskRemind} cardStyle={globalTheme.cardStyle} sectionColor={section.color} />))}</div>
+                                    <div className={`space-y-3 min-h-[50px] p-2.5 rounded-xl border border-dashed ${COLOR_THEMES[section.color]?.border || 'border-gray-200'} ${COLOR_THEMES[section.color]?.bg || 'bg-gray-50'} bg-opacity-30`}>{tasks[section.id]?.length === 0 && <div className="text-center py-4 text-gray-400 text-xs">本日暂无安排</div>}{tasks[section.id]?.map(task => (<TaskCard key={task.id} task={task} onToggle={handleToggleTask} onEdit={(t) => handleEditTask(t, section.id)} onDelete={(id) => handleDeleteTaskDirectly(id, section.id)} onNote={handleOpenNote} onRemind={handleTaskRemind} onStart={(t) => handleStartTask(t, section.id)} cardStyle={globalTheme.cardStyle} sectionColor={section.color} />))}</div>
                                     <button onClick={() => handleAddTask(section.id)} className={`w-full py-3 mt-3 rounded-xl border-2 border-dashed ${COLOR_THEMES[section.color]?.border || 'border-gray-300'} ${COLOR_THEMES[section.color]?.text || 'text-gray-500'} flex items-center justify-center hover:${COLOR_THEMES[section.color]?.bg || 'bg-gray-100'} transition-colors group`}><Plus className="w-5 h-5 group-hover:scale-110 transition-transform" /></button>
                                 </div>
                             ))}
@@ -1062,7 +930,15 @@
 
                         <div className="bg-white rounded-xl p-4 shadow-sm mb-8">
                             <div className="flex items-center justify-between mb-4"><div className="flex items-center gap-3"><span className="bg-yellow-100 text-yellow-600 text-xs font-bold px-2 py-1 rounded">TODO</span><span className="font-bold text-slate-700">碎片清单</span></div><button onClick={() => handleAddTask('fragmentary')} className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs rounded hover:bg-blue-100 transition flex items-center gap-1"><Plus className="w-3 h-3" /> 添加</button></div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{tasks.fragmentary?.map(task => (<div key={task.id} onClick={() => handleToggleTask(task.id)} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition group"><div className="flex items-center gap-3"><button onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }} className="text-gray-300 hover:text-indigo-500 flex-shrink-0">{task.completed ? <CheckCircle2 className="w-5 h-5 text-indigo-500" /> : <Circle className="w-5 h-5" />}</button><span className={`text-sm text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</span></div><div className="flex items-center gap-1"><button onClick={(e) => { e.stopPropagation(); handleEditTask(task, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition"><Edit3 className="w-3.5 h-3.5" /></button><button onClick={(e) => { e.stopPropagation(); handleDeleteTaskDirectly(task.id, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"><Trash2 className="w-3.5 h-3.5" /></button></div></div>))}</div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">{tasks.fragmentary?.map(task => (
+                                <div key={task.id} onClick={() => handleToggleTask(task.id)} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition group">
+                                    <div className="flex items-center gap-3"><button onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id); }} className="text-gray-300 hover:text-indigo-500 flex-shrink-0">{task.completed ? <CheckCircle2 className="w-5 h-5 text-indigo-500" /> : <Circle className="w-5 h-5" />}</button><span className={`text-sm text-gray-700 ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</span></div>
+                                    <div className="flex items-center gap-1">
+                                        <button onClick={(e) => { e.stopPropagation(); handleEditTask(task, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition"><Edit3 className="w-3.5 h-3.5" /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTaskDirectly(task.id, 'fragmentary'); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                                    </div>
+                                </div>
+                            ))}</div>
                         </div>
                     </div>
 
